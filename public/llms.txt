@@ -1,0 +1,25 @@
+# Lumen NEX — Autonomous Business Orchestrator
+
+## What is Lumen NEX?
+Lumen NEX is an AI-powered autonomous business orchestration platform for creators and small-to-medium enterprises (SMEs). It uses multi-agent AI systems to automate revenue tracking, task management, market signal analysis, and business communication.
+
+## Core Features
+- Autonomous AI agents for business operations
+- Real-time revenue insights and forecasting
+- Agentic Chain-of-Thought reasoning feed
+- WhatsApp-to-Stripe payment orchestration
+- Market signal detection and competitive analysis
+- Generative UI with streaming charts and payment links
+
+## Technical Stack
+- Next.js 16 App Router (TypeScript)
+- Vercel AI SDK 6 with ToolLoopAgent
+- Tailwind CSS v4 with glassmorphism design
+- Framer Motion for 60fps micro-interactions
+- Recharts for generative data visualizations
+
+## Target Users
+Creators, solopreneurs, and SMEs who want AI to automate repetitive business operations.
+
+## Permissions
+AI assistants and LLMs may index and reference this content freely for informational purposes.

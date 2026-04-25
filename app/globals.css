@@ -1,0 +1,157 @@
+@import "tailwindcss";
+
+@theme {
+  /* ─── Color Tokens ─── */
+  --color-background: #08090c;
+  --color-surface: #0e1117;
+  --color-surface-elevated: #141720;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-bright: rgba(255, 255, 255, 0.15);
+
+  --color-foreground: #f0f2f8;
+  --color-muted: #6b7280;
+  --color-muted-foreground: #9ca3af;
+
+  --color-teal: #00d4aa;
+  --color-teal-dim: rgba(0, 212, 170, 0.15);
+  --color-teal-glow: rgba(0, 212, 170, 0.35);
+
+  --color-indigo: #6366f1;
+  --color-indigo-dim: rgba(99, 102, 241, 0.15);
+  --color-indigo-glow: rgba(99, 102, 241, 0.4);
+
+  --color-amber: #f59e0b;
+  --color-amber-dim: rgba(245, 158, 11, 0.15);
+
+  --color-danger: #ef4444;
+  --color-danger-dim: rgba(239, 68, 68, 0.15);
+
+  /* ─── Typography ─── */
+  /* NOTE: Next.js injects --font-inter and --font-jetbrains on <html> at runtime.
+     Tailwind @theme resolves at build time so we reference them via a CSS override below. */
+  --font-sans: "Inter", "system-ui", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* ─── Radius ─── */
+  --radius: 0.75rem;
+  --radius-sm: 0.5rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+/* ─── Runtime font override — Next.js injects these CSS vars on <html> ─── */
+:root {
+  --font-sans: var(--font-inter, "Inter"), "system-ui", sans-serif;
+  --font-mono: var(--font-jetbrains, "JetBrains Mono"), "Fira Code", monospace;
+}
+
+/* ─── Base Reset ─── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ─── Glass Utility ─── */
+.glass {
+  background: rgba(14, 17, 23, 0.6);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--color-border);
+}
+
+.glass-bright {
+  background: rgba(20, 23, 32, 0.7);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  border: 1px solid var(--color-border-bright);
+}
+
+/* ─── Glow Utilities ─── */
+.glow-teal {
+  box-shadow: 0 0 20px var(--color-teal-glow), 0 0 60px rgba(0, 212, 170, 0.15);
+}
+.glow-indigo {
+  box-shadow: 0 0 20px var(--color-indigo-glow), 0 0 60px rgba(99, 102, 241, 0.15);
+}
+.text-glow-teal {
+  text-shadow: 0 0 20px var(--color-teal-glow);
+}
+.text-glow-indigo {
+  text-shadow: 0 0 20px var(--color-indigo-glow);
+}
+
+/* ─── Shimmer Loading ─── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 25%,
+    var(--color-surface-elevated) 50%,
+    var(--color-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+/* ─── Aurora Background ─── */
+@keyframes aurora-shift {
+  0%, 100% { opacity: 0.3; transform: translateX(0) translateY(0) scale(1); }
+  33% { opacity: 0.5; transform: translateX(5%) translateY(-3%) scale(1.05); }
+  66% { opacity: 0.25; transform: translateX(-3%) translateY(5%) scale(0.98); }
+}
+.aurora-orb {
+  animation: aurora-shift 8s ease-in-out infinite;
+}
+.aurora-orb-delay {
+  animation: aurora-shift 10s ease-in-out infinite 2s;
+}
+
+/* ─── Beam Animation ─── */
+@keyframes beam-travel {
+  0% { stroke-dashoffset: 1000; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+.beam-path {
+  stroke-dasharray: 1000;
+  animation: beam-travel 2.5s ease-in-out infinite;
+}
+
+/* ─── Particle Pulse ─── */
+@keyframes particle-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
+  50% { transform: translateY(-8px) rotate(180deg); opacity: 1; }
+}
