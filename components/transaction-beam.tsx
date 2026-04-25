@@ -5,61 +5,127 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, CreditCard, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface Pulse {
-  id: number;
-  progress: number;
+/** Sample a quadratic bezier at t ∈ [0,1] */
+function quadBezier(
+  t: number,
+  x1: number, y1: number,
+  cpX: number, cpY: number,
+  x2: number, y2: number
+): [number, number] {
+  const mt = 1 - t;
+  const x = mt * mt * x1 + 2 * mt * t * cpX + t * t * x2;
+  const y = mt * mt * y1 + 2 * mt * t * cpY + t * t * y2;
+  return [x, y];
 }
 
+interface BeamPoint { x1: number; y1: number; cpX: number; cpY: number; x2: number; y2: number }
+
 export function TransactionBeam({ className }: { className?: string }) {
-  const svgRef = useRef<SVGSVGElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const fromRef = useRef<HTMLDivElement>(null);
   const toRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [pulses, setPulses] = useState<Pulse[]>([]);
-  const [pathD, setPathD] = useState("");
+  const beamRef = useRef<BeamPoint | null>(null);
+  const rafRef = useRef<number>(0);
   const [recentAmount, setRecentAmount] = useState<string | null>(null);
-  const pulseIdRef = useRef(0);
 
-  // Build SVG path between two nodes
+  // ── Build bezier coords on mount/resize ──────────────────────────────────
   useEffect(() => {
     const update = () => {
       if (!fromRef.current || !toRef.current || !containerRef.current) return;
-      const containerRect = containerRef.current.getBoundingClientRect();
-      const fromRect = fromRef.current.getBoundingClientRect();
-      const toRect = toRef.current.getBoundingClientRect();
+      const cr = containerRef.current.getBoundingClientRect();
+      const fr = fromRef.current.getBoundingClientRect();
+      const tr = toRef.current.getBoundingClientRect();
+      const x1 = fr.left + fr.width / 2 - cr.left;
+      const y1 = fr.top + fr.height / 2 - cr.top;
+      const x2 = tr.left + tr.width / 2 - cr.left;
+      const y2 = tr.top + tr.height / 2 - cr.top;
+      beamRef.current = { x1, y1, cpX: (x1 + x2) / 2, cpY: Math.min(y1, y2) - 30, x2, y2 };
 
-      const x1 = fromRect.left + fromRect.width / 2 - containerRect.left;
-      const y1 = fromRect.top + fromRect.height / 2 - containerRect.top;
-      const x2 = toRect.left + toRect.width / 2 - containerRect.left;
-      const y2 = toRect.top + toRect.height / 2 - containerRect.top;
-
-      const cpX = (x1 + x2) / 2;
-      const cpY = Math.min(y1, y2) - 30;
-      setPathD(`M${x1},${y1} Q${cpX},${cpY} ${x2},${y2}`);
+      // Size canvas to container
+      if (canvasRef.current) {
+        canvasRef.current.width = cr.width;
+        canvasRef.current.height = cr.height;
+      }
     };
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // Emit pulses periodically
+  // ── Canvas RAF draw loop ─────────────────────────────────────────────────
   useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    interface ActivePulse { t: number; speed: number }
+    const pulses: ActivePulse[] = [];
+    let spawnTimer = 0;
+    const SPAWN_INTERVAL = 2200; // ms between new pulses
+    let lastTime = performance.now();
+
     const amounts = ["$24.99", "$149.00", "$9.99", "$299.00", "$59.50"];
-    const interval = setInterval(() => {
-      const id = ++pulseIdRef.current;
-      const amount = amounts[Math.floor(Math.random() * amounts.length)];
-      setPulses((prev) => [...prev, { id, progress: 0 }]);
 
-      // Show amount mid-way
-      setTimeout(() => setRecentAmount(amount), 600);
-      setTimeout(() => setRecentAmount(null), 1800);
+    const draw = (now: number) => {
+      const dt = now - lastTime;
+      lastTime = now;
+      spawnTimer += dt;
 
-      // Remove pulse after animation
-      setTimeout(() => {
-        setPulses((prev) => prev.filter((p) => p.id !== id));
-      }, 1400);
-    }, 2200);
-    return () => clearInterval(interval);
+      const b = beamRef.current;
+      if (!b) { rafRef.current = requestAnimationFrame(draw); return; }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw static dashed track
+      ctx.beginPath();
+      ctx.moveTo(b.x1, b.y1);
+      ctx.quadraticCurveTo(b.cpX, b.cpY, b.x2, b.y2);
+      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 8]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Spawn new pulse
+      if (spawnTimer >= SPAWN_INTERVAL) {
+        spawnTimer = 0;
+        pulses.push({ t: 0, speed: 1 / 1300 }); // 1300ms travel time
+        const amount = amounts[Math.floor(Math.random() * amounts.length)];
+        setTimeout(() => setRecentAmount(amount), 600);
+        setTimeout(() => setRecentAmount(null), 1800);
+      }
+
+      // Draw & advance pulses
+      for (let i = pulses.length - 1; i >= 0; i--) {
+        pulses[i].t = Math.min(pulses[i].t + dt * pulses[i].speed, 1);
+        const [px, py] = quadBezier(pulses[i].t, b.x1, b.y1, b.cpX, b.cpY, b.x2, b.y2);
+
+        // Glow
+        const grd = ctx.createRadialGradient(px, py, 0, px, py, 12);
+        grd.addColorStop(0, "rgba(0,212,170,0.8)");
+        grd.addColorStop(0.4, "rgba(0,212,170,0.3)");
+        grd.addColorStop(1, "rgba(0,212,170,0)");
+        ctx.beginPath();
+        ctx.arc(px, py, 12, 0, Math.PI * 2);
+        ctx.fillStyle = grd;
+        ctx.fill();
+
+        // Core dot
+        ctx.beginPath();
+        ctx.arc(px, py, 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#00d4aa";
+        ctx.fill();
+
+        if (pulses[i].t >= 1) pulses.splice(i, 1);
+      }
+
+      rafRef.current = requestAnimationFrame(draw);
+    };
+
+    rafRef.current = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(rafRef.current);
   }, []);
 
   return (
@@ -67,60 +133,12 @@ export function TransactionBeam({ className }: { className?: string }) {
       ref={containerRef}
       className={cn("relative flex items-center justify-between px-8 py-6", className)}
     >
-      {/* SVG beam track */}
-      <svg
-        ref={svgRef}
-        className="pointer-events-none absolute inset-0 w-full h-full overflow-visible"
+      {/* Canvas beam layer */}
+      <canvas
+        ref={canvasRef}
+        className="pointer-events-none absolute inset-0 w-full h-full"
         aria-hidden="true"
-      >
-        <defs>
-          <linearGradient id="beamGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#00d4aa" stopOpacity="0" />
-            <stop offset="50%" stopColor="#00d4aa" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
-          </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        {/* Static faint track */}
-        {pathD && (
-          <path
-            d={pathD}
-            stroke="rgba(255,255,255,0.05)"
-            strokeWidth="1.5"
-            fill="none"
-            strokeDasharray="4 8"
-          />
-        )}
-
-        {/* Animated pulse dots */}
-        {pathD &&
-          pulses.map((pulse) => (
-            <motion.circle
-              key={pulse.id}
-              r={5}
-              fill="url(#beamGrad)"
-              filter="url(#glow)"
-              initial={{ offsetDistance: "0%" }}
-              animate={{ offsetDistance: "100%" }}
-              transition={{ duration: 1.3, ease: "easeInOut" }}
-              style={{ offsetPath: `path("${pathD}")` } as React.CSSProperties}
-            >
-              <motion.animate
-                attributeName="r"
-                values="4;7;4"
-                dur="0.6s"
-                repeatCount="indefinite"
-              />
-            </motion.circle>
-          ))}
-      </svg>
+      />
 
       {/* WhatsApp / Source node */}
       <div ref={fromRef} className="relative z-10 flex flex-col items-center gap-2">

@@ -2,7 +2,7 @@
 
 import { useRef, useMemo } from "react";
 import { Canvas, useFrame, extend } from "@react-three/fiber";
-import { Sphere, shaderMaterial } from "@react-three/drei";
+import { shaderMaterial } from "@react-three/drei";
 import * as THREE from "three";
 
 // ── Custom GLSL Shader ───────────────────────────────────────────────────────
@@ -132,14 +132,16 @@ function OrbScene({ processing }: { processing: boolean }) {
 
   return (
     <>
-      {/* Fake glow shell */}
-      <Sphere ref={glowRef} args={[1, 32, 32]}>
+      {/* Fake glow shell — use raw <mesh> so ref forwards correctly */}
+      <mesh ref={glowRef}>
+        <sphereGeometry args={[1, 32, 32]} />
         <primitive object={glowMat} attach="material" />
-      </Sphere>
+      </mesh>
 
       {/* Main orb with GLSL shader */}
-      <Sphere args={[0.78, 128, 128]}>
-        {/* @ts-expect-error custom shader */}
+      <mesh>
+        <sphereGeometry args={[0.78, 128, 128]} />
+        {/* @ts-expect-error custom extended material */}
         <nexusShaderMaterial
           ref={matRef}
           uTime={0}
@@ -149,7 +151,7 @@ function OrbScene({ processing }: { processing: boolean }) {
           uColorC={new THREE.Color("#0ea5e9")}
           transparent
         />
-      </Sphere>
+      </mesh>
 
       {/* Orbital rings */}
       <mesh ref={ring1Ref} rotation={[Math.PI / 2.4, 0, 0]}>

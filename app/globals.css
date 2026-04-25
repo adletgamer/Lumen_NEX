@@ -27,14 +27,22 @@
   --color-danger-dim: rgba(239, 68, 68, 0.15);
 
   /* ─── Typography ─── */
-  --font-sans: var(--font-inter), "Inter", "system-ui", sans-serif;
-  --font-mono: var(--font-jetbrains), "JetBrains Mono", "Fira Code", monospace;
+  /* NOTE: Next.js injects --font-inter and --font-jetbrains on <html> at runtime.
+     Tailwind @theme resolves at build time so we reference them via a CSS override below. */
+  --font-sans: "Inter", "system-ui", sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
 
   /* ─── Radius ─── */
   --radius: 0.75rem;
   --radius-sm: 0.5rem;
   --radius-lg: 1rem;
   --radius-xl: 1.5rem;
+}
+
+/* ─── Runtime font override — Next.js injects these CSS vars on <html> ─── */
+:root {
+  --font-sans: var(--font-inter, "Inter"), "system-ui", sans-serif;
+  --font-mono: var(--font-jetbrains, "JetBrains Mono"), "Fira Code", monospace;
 }
 
 /* ─── Base Reset ─── */

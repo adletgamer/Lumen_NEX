@@ -41,7 +41,24 @@ export default function AgentPage() {
           className="flex items-center gap-3 px-6 py-4 glass-bright flex-shrink-0"
           style={{ borderBottom: "1px solid var(--color-border)" }}
         >
-          <NexusCore size={40} state={isStreaming ? "processing" : "idle"} />
+          {/* Pulsing orb status indicator — avoids a 40px WebGL canvas */}
+          <div className="relative flex-shrink-0 w-10 h-10 flex items-center justify-center" aria-hidden="true">
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              style={{ background: isStreaming ? "rgba(99,102,241,0.15)" : "rgba(0,212,170,0.12)" }}
+              animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0.1, 0.6] }}
+              transition={{ duration: isStreaming ? 0.8 : 2.4, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <div
+              className="w-5 h-5 rounded-full transition-all duration-500"
+              style={{
+                background: isStreaming
+                  ? "radial-gradient(circle at 35% 35%, #6366f1, rgba(99,102,241,0.4))"
+                  : "radial-gradient(circle at 35% 35%, #00d4aa, rgba(0,212,170,0.4))",
+                boxShadow: isStreaming ? "0 0 14px rgba(99,102,241,0.7)" : "0 0 14px rgba(0,212,170,0.6)",
+              }}
+            />
+          </div>
           <div>
             <h1 className="text-sm font-semibold" style={{ color: "var(--color-foreground)" }}>
               Lumen NEX Agent
