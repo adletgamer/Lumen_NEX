@@ -2,17 +2,18 @@
 
 import { useRef, useMemo } from "react";
 import { Canvas, useFrame, extend } from "@react-three/fiber";
+import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { shaderMaterial } from "@react-three/drei";
 import * as THREE from "three";
 
-// ── Custom GLSL Shader ───────────────────────────────────────────────────────
+// ── Amethyst Nebula Shader ───────────────────────────────────────────────────
 const NexusShaderMaterial = shaderMaterial(
   {
     uTime: 0,
-    uProcessing: 0,
-    uColorA: new THREE.Color("#00d4aa"),
-    uColorB: new THREE.Color("#6366f1"),
-    uColorC: new THREE.Color("#0ea5e9"),
+    uThinking: 0,
+    uColorA: new THREE.Color("#6366f1"), // Electric Indigo
+    uColorB: new THREE.Color("#8b5cf6"), // Vivid Purple
+    uColorC: new THREE.Color("#a855f7"), // Amethyst
   },
   /* vertex */
   `
@@ -26,10 +27,10 @@ const NexusShaderMaterial = shaderMaterial(
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
   `,
-  /* fragment */
+  /* fragment — fBm swirling nebula */
   `
     uniform float uTime;
-    uniform float uProcessing;
+    uniform float uThinking;
     uniform vec3 uColorA;
     uniform vec3 uColorB;
     uniform vec3 uColorC;
@@ -45,7 +46,7 @@ const NexusShaderMaterial = shaderMaterial(
     float noise(vec3 p) {
       vec3 i = floor(p); vec3 f = fract(p);
       vec3 u = f * f * (3.0 - 2.0 * f);
-      float a = dot(hash3(i),              f);
+      float a = dot(hash3(i),               f);
       float b = dot(hash3(i + vec3(1,0,0)), f - vec3(1,0,0));
       float c = dot(hash3(i + vec3(0,1,0)), f - vec3(0,1,0));
       float d = dot(hash3(i + vec3(1,1,0)), f - vec3(1,1,0));
@@ -58,39 +59,62 @@ const NexusShaderMaterial = shaderMaterial(
     }
     float fbm(vec3 p) {
       float v = 0.0; float a = 0.5;
-      for(int i=0;i<5;i++){v+=a*noise(p);p=p*2.0+vec3(1.7,9.2,3.1);a*=0.5;}
+      for(int i=0;i<5;i++){v+=a*noise(p);p=p*2.1+vec3(1.7,9.2,3.1);a*=0.5;}
       return v;
     }
     void main() {
-      float spd = mix(0.35, 1.5, uProcessing);
-      vec3 p = vPosition * 2.2 + vec3(uTime * spd * 0.28);
+      float spd = mix(0.3, 1.8, uThinking);
+      vec3 p = vPosition * 2.4 + vec3(uTime * spd * 0.25);
       float n1 = fbm(p);
-      float n2 = fbm(p + vec3(uTime * spd * 0.13, 0.0, uTime * spd * 0.09));
-      float swirl = fbm(vPosition * 2.8 + vec3(sin(uTime*spd*0.5)*2.0, cos(uTime*spd*0.3)*2.0, uTime*spd*0.18));
+      float n2 = fbm(p + vec3(uTime * spd * 0.14, 0.0, uTime * spd * 0.08));
+      float swirl = fbm(vPosition * 3.0 + vec3(
+        sin(uTime * spd * 0.45) * 2.1,
+        cos(uTime * spd * 0.28) * 2.1,
+        uTime * spd * 0.17
+      ));
 
       vec3 col = mix(uColorA, uColorB, n1);
-      col = mix(col, uColorC, n2 * 0.55);
-      col = mix(col, uColorA * 1.6, swirl * 0.38);
+      col = mix(col, uColorC, n2 * 0.6);
+      col = mix(col, uColorA * 1.8, swirl * 0.4);
 
-      float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0.0,0.0,1.0))), 2.8);
-      col += mix(uColorA, uColorB, uProcessing) * fresnel * 1.4;
+      // Fresnel rim glow — violet edge
+      float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0,0,1))), 2.5);
+      col += mix(uColorB, uColorC, uThinking) * fresnel * 1.6;
 
-      float pulse = 0.82 + 0.18 * sin(uTime * spd * mix(1.8, 5.5, uProcessing));
+      // Pulse intensity — heartbeat rhythm when thinking
+      float pulse = 0.80 + 0.20 * sin(uTime * spd * mix(1.6, 6.0, uThinking));
       col *= pulse;
 
-      float streak = smoothstep(0.62, 1.0, swirl) * mix(0.3, 1.2, uProcessing);
-      col += uColorA * streak * 0.35;
+      // Bright energy streaks
+      float streak = smoothstep(0.65, 1.0, swirl) * mix(0.25, 1.4, uThinking);
+      col += uColorC * streak * 0.45;
 
-      gl_FragColor = vec4(col, 0.9 + fresnel * 0.1);
+      gl_FragColor = vec4(col, 0.92 + fresnel * 0.08);
     }
   `
 );
 
 extend({ NexusShaderMaterial });
 
+// ── Declare JSX element type for TS ─────────────────────────────────────────
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      nexusShaderMaterial: React.RefAttributes<THREE.ShaderMaterial> & {
+        uTime?: number;
+        uThinking?: number;
+        uColorA?: THREE.Color;
+        uColorB?: THREE.Color;
+        uColorC?: THREE.Color;
+        transparent?: boolean;
+      };
+    }
+  }
+}
+
 // ── Orb Scene ────────────────────────────────────────────────────────────────
-function OrbScene({ processing }: { processing: boolean }) {
-  const matRef = useRef<THREE.ShaderMaterial & { uTime: number; uProcessing: number }>(null);
+function OrbScene({ isThinking }: { isThinking: boolean }) {
+  const matRef = useRef<THREE.ShaderMaterial & { uTime: number; uThinking: number }>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const ring1Ref = useRef<THREE.Mesh>(null);
   const ring2Ref = useRef<THREE.Mesh>(null);
@@ -98,102 +122,107 @@ function OrbScene({ processing }: { processing: boolean }) {
   const glowMat = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
-        color: processing ? "#6366f1" : "#00d4aa",
+        color: isThinking ? "#a855f7" : "#8b5cf6",
         transparent: true,
-        opacity: 0.1,
+        opacity: 0.12,
         side: THREE.BackSide,
         depthWrite: false,
       }),
-    [processing]
+    [isThinking]
   );
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
+    const rotMult = isThinking ? 2.0 : 1.0;
+
     if (matRef.current) {
       matRef.current.uTime = t;
-      matRef.current.uProcessing = THREE.MathUtils.lerp(
-        matRef.current.uProcessing,
-        processing ? 1.0 : 0.0,
-        0.04
+      matRef.current.uThinking = THREE.MathUtils.lerp(
+        matRef.current.uThinking,
+        isThinking ? 1.0 : 0.0,
+        0.05
       );
     }
     if (glowRef.current) {
-      glowRef.current.scale.setScalar(1.26 + Math.sin(t * (processing ? 2.8 : 1.1)) * 0.05);
+      glowRef.current.scale.setScalar(1.28 + Math.sin(t * (isThinking ? 3.5 : 1.2)) * 0.06);
     }
     if (ring1Ref.current) {
-      ring1Ref.current.rotation.y = t * 0.4;
-      ring1Ref.current.rotation.z = t * 0.15;
+      ring1Ref.current.rotation.y = t * 0.45 * rotMult;
+      ring1Ref.current.rotation.z = t * 0.18 * rotMult;
     }
     if (ring2Ref.current) {
-      ring2Ref.current.rotation.y = -t * 0.3;
-      ring2Ref.current.rotation.x = t * 0.2;
+      ring2Ref.current.rotation.y = -t * 0.32 * rotMult;
+      ring2Ref.current.rotation.x = t * 0.22 * rotMult;
     }
   });
 
   return (
     <>
-      {/* Fake glow shell — use raw <mesh> so ref forwards correctly */}
+      {/* Fake glow shell */}
       <mesh ref={glowRef}>
         <sphereGeometry args={[1, 32, 32]} />
         <primitive object={glowMat} attach="material" />
       </mesh>
 
-      {/* Main orb with GLSL shader */}
+      {/* Main orb — Amethyst Nebula GLSL */}
       <mesh>
         <sphereGeometry args={[0.78, 128, 128]} />
-        {/* @ts-expect-error custom extended material */}
         <nexusShaderMaterial
           ref={matRef}
           uTime={0}
-          uProcessing={0}
-          uColorA={new THREE.Color("#00d4aa")}
-          uColorB={new THREE.Color("#6366f1")}
-          uColorC={new THREE.Color("#0ea5e9")}
+          uThinking={0}
+          uColorA={new THREE.Color("#6366f1")}
+          uColorB={new THREE.Color("#8b5cf6")}
+          uColorC={new THREE.Color("#a855f7")}
           transparent
         />
       </mesh>
 
-      {/* Orbital rings */}
+      {/* Orbital rings — violet */}
       <mesh ref={ring1Ref} rotation={[Math.PI / 2.4, 0, 0]}>
         <torusGeometry args={[1.06, 0.007, 8, 128]} />
-        <meshBasicMaterial color="#00d4aa" transparent opacity={0.3} depthWrite={false} />
+        <meshBasicMaterial color="#8b5cf6" transparent opacity={0.35} depthWrite={false} />
       </mesh>
       <mesh ref={ring2Ref} rotation={[Math.PI / 3.5, Math.PI / 5, 0]}>
         <torusGeometry args={[1.18, 0.004, 8, 128]} />
-        <meshBasicMaterial color="#6366f1" transparent opacity={0.18} depthWrite={false} />
+        <meshBasicMaterial color="#a855f7" transparent opacity={0.22} depthWrite={false} />
       </mesh>
     </>
   );
 }
 
-// ── Public Component ──────────────────────────────────────────────────────────
+// ── Public Component ─────────────────────────────────────────────────────────
 export type NexusState = "idle" | "processing";
 
 interface NexusCoreProps {
+  /** Legacy prop — maps to isThinking internally */
   state?: NexusState;
+  /** Direct thinking prop used by agent page */
+  isThinking?: boolean;
   size?: number;
   className?: string;
 }
 
-export function NexusCore({ state = "idle", size = 320, className }: NexusCoreProps) {
+export function NexusCore({ state = "idle", isThinking, size = 320, className }: NexusCoreProps) {
+  const thinking = isThinking ?? state === "processing";
+
   return (
     <div
       style={{ width: size, height: size, position: "relative", flexShrink: 0 }}
       className={className}
-      aria-label={`NexusCore — ${state}`}
+      aria-label={`NexusCore — ${thinking ? "thinking" : "idle"}`}
       role="img"
     >
-      {/* Ambient glow behind canvas */}
+      {/* Ambient violet glow behind canvas */}
       <div
         style={{
           position: "absolute",
           inset: "15%",
           borderRadius: "50%",
-          background:
-            state === "processing"
-              ? "radial-gradient(circle, rgba(99,102,241,0.4) 0%, transparent 70%)"
-              : "radial-gradient(circle, rgba(0,212,170,0.32) 0%, transparent 70%)",
-          filter: "blur(24px)",
+          background: thinking
+            ? "radial-gradient(circle, rgba(168,85,247,0.45) 0%, transparent 70%)"
+            : "radial-gradient(circle, rgba(99,102,241,0.35) 0%, transparent 70%)",
+          filter: "blur(28px)",
           pointerEvents: "none",
           transition: "background 0.8s ease",
         }}
@@ -205,10 +234,19 @@ export function NexusCore({ state = "idle", size = 320, className }: NexusCorePr
         gl={{ antialias: true, alpha: true }}
         style={{ background: "transparent" }}
       >
-        <ambientLight intensity={0.5} />
-        <pointLight position={[2, 2, 2]} intensity={1.4} color="#00d4aa" />
-        <pointLight position={[-2, -1, -2]} intensity={0.7} color="#6366f1" />
-        <OrbScene processing={state === "processing"} />
+        <ambientLight intensity={0.4} />
+        <pointLight position={[2, 2, 2]} intensity={1.2} color="#8b5cf6" />
+        <pointLight position={[-2, -1, -2]} intensity={0.8} color="#a855f7" />
+        <OrbScene isThinking={thinking} />
+        {/* Bloom post-processing — subtle violet glow cast onto background */}
+        <EffectComposer>
+          <Bloom
+            intensity={thinking ? 1.8 : 0.9}
+            luminanceThreshold={0.3}
+            luminanceSmoothing={0.6}
+            mipmapBlur
+          />
+        </EffectComposer>
       </Canvas>
     </div>
   );

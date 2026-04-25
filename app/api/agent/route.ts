@@ -1,22 +1,38 @@
 import { ToolLoopAgent, createAgentUIStreamResponse, tool } from "ai";
+import { Redis } from "@upstash/redis";
 import { z } from "zod";
 
-// Rate limit map (in-memory, per deploy instance)
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+// ── Upstash Redis — distributed sliding-window rate limiter ──────────────────
+// Works across all serverless instances, unlike an in-memory Map
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL!,
+  token: process.env.KV_REST_API_TOKEN!,
+});
 
-function checkRateLimit(ip: string): boolean {
+const RATE_LIMIT = 20;  // requests
+const RATE_WINDOW = 60; // seconds
+
+async function checkRateLimit(
+  ip: string
+): Promise<{ allowed: boolean; remaining: number }> {
+  const key = `rl:agent:${ip}`;
   const now = Date.now();
-  const window = 60_000; // 1 minute
-  const limit = 20;
+  const windowStart = now - RATE_WINDOW * 1000;
 
-  const entry = rateLimitMap.get(ip);
-  if (!entry || entry.resetAt < now) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + window });
-    return true;
-  }
-  if (entry.count >= limit) return false;
-  entry.count++;
-  return true;
+  // Atomic pipeline: remove stale, add current, count, set TTL
+  const pipeline = redis.pipeline();
+  pipeline.zremrangebyscore(key, 0, windowStart);
+  pipeline.zadd(key, { score: now, member: `${now}-${Math.random()}` });
+  pipeline.zcard(key);
+  pipeline.expire(key, RATE_WINDOW);
+
+  const results = await pipeline.exec();
+  const count = (results[2] as number) ?? 0;
+
+  return {
+    allowed: count <= RATE_LIMIT,
+    remaining: Math.max(0, RATE_LIMIT - count),
+  };
 }
 
 const nexusAgent = new ToolLoopAgent({
@@ -68,15 +84,31 @@ always call the appropriate tool to fetch real data rather than guessing.`,
 });
 
 export async function POST(req: Request) {
-  // Security: rate limiting
-  const ip = req.headers.get("x-forwarded-for") ?? "unknown";
-  if (!checkRateLimit(ip)) {
-    return new Response(JSON.stringify({ error: "Too many requests" }), {
-      status: 429,
-      headers: { "Content-Type": "application/json", "Retry-After": "60" },
-    });
+  // Layer 1 — Distributed IP rate limiting via Upstash Redis
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
+    req.headers.get("x-real-ip") ??
+    "unknown";
+
+  const { allowed, remaining } = await checkRateLimit(ip);
+
+  if (!allowed) {
+    return new Response(
+      JSON.stringify({ error: "Too many requests. Please wait and try again." }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": String(RATE_WINDOW),
+          "X-RateLimit-Limit": String(RATE_LIMIT),
+          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Reset": String(Math.ceil(Date.now() / 1000) + RATE_WINDOW),
+        },
+      }
+    );
   }
 
+  // Layer 2 — Parse JSON body safely
   let body: unknown;
   try {
     body = await req.json();
@@ -87,19 +119,26 @@ export async function POST(req: Request) {
     });
   }
 
+  // Layer 3 — Zod schema validation (never trust raw input)
   const parsed = z
     .object({ messages: z.array(z.any()).min(1).max(100) })
     .safeParse(body);
 
   if (!parsed.success) {
-    return new Response(JSON.stringify({ error: "Invalid request body" }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "Invalid request body", details: parsed.error.flatten() }),
+      { status: 400, headers: { "Content-Type": "application/json" } }
+    );
   }
 
-  return createAgentUIStreamResponse({
+  // Layer 4 — Stream the agent response with rate limit headers
+  const response = await createAgentUIStreamResponse({
     agent: nexusAgent,
     uiMessages: parsed.data.messages,
   });
+
+  response.headers.set("X-RateLimit-Limit", String(RATE_LIMIT));
+  response.headers.set("X-RateLimit-Remaining", String(remaining - 1));
+
+  return response;
 }
