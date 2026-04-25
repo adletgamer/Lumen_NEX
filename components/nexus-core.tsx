@@ -96,19 +96,23 @@ const NexusShaderMaterial = shaderMaterial(
 
 extend({ NexusShaderMaterial });
 
-// ── Declare JSX element type for TS ─────────────────────────────────────────
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      nexusShaderMaterial: React.RefAttributes<THREE.ShaderMaterial> & {
-        uTime?: number;
-        uThinking?: number;
-        uColorA?: THREE.Color;
-        uColorB?: THREE.Color;
-        uColorC?: THREE.Color;
-        transparent?: boolean;
-      };
-    }
+// ── Augment @react-three/fiber's JSX namespace for the custom material ───────
+type NexusShaderMaterialProps = Omit<
+  import("@react-three/fiber").ThreeElements["shaderMaterial"],
+  "ref"
+> & {
+  ref?: React.Ref<THREE.ShaderMaterial & { uTime: number; uThinking: number }>;
+  uTime?: number;
+  uThinking?: number;
+  uColorA?: THREE.Color;
+  uColorB?: THREE.Color;
+  uColorC?: THREE.Color;
+  transparent?: boolean;
+};
+
+declare module "@react-three/fiber" {
+  interface ThreeElements {
+    nexusShaderMaterial: NexusShaderMaterialProps;
   }
 }
 
