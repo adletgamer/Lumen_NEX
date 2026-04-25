@@ -37,8 +37,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable} bg-[var(--color-background)]`}>
-      <body className="font-sans text-[var(--color-foreground)] antialiased">
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`} style={{ background: "#08090c" }}>
+      <body className="font-sans antialiased" style={{ background: "#08090c", color: "#f0f2f8" }}>
         {children}
       </body>
     </html>

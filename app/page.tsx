@@ -74,7 +74,7 @@ export default function LandingPage() {
             className="w-1.5 h-1.5 rounded-full inline-block"
             style={{ background: "#00d4aa", boxShadow: "0 0 6px #00d4aa" }}
           />
-          Autonomous · Intelligent · 2030-ready
+          Autonomous &middot; Intelligent &middot; 2030-ready
         </div>
 
         {/* Heading */}

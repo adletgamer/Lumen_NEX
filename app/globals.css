@@ -27,8 +27,8 @@
   --color-danger-dim: rgba(239, 68, 68, 0.15);
 
   /* ─── Typography ─── */
-  --font-sans: "Inter", "system-ui", sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --font-sans: var(--font-inter), "Inter", "system-ui", sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", "Fira Code", monospace;
 
   /* ─── Radius ─── */
   --radius: 0.75rem;

@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
         source: "/(.*)",
         headers: [
           { key: "X-DNS-Prefetch-Control", value: "on" },
-          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          // X-Frame-Options omitted in dev — set via Vercel headers in production
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
@@ -21,9 +21,11 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-              "font-src 'self' https://fonts.gstatic.com",
+              "font-src 'self' data: https://fonts.gstatic.com",
               "img-src 'self' data: blob: https:",
-              "connect-src 'self' https://api.vercel.ai https://*.vercel.ai",
+              "connect-src 'self' https://api.vercel.ai https://*.vercel.ai wss://*.vercel.app",
+              "worker-src 'self' blob:",
+              "frame-ancestors *",
             ].join("; "),
           },
           {
