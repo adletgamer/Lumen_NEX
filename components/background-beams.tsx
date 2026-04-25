@@ -32,10 +32,11 @@ export function BackgroundBeams() {
     resize();
     window.addEventListener("resize", resize);
 
+    // Gradient palette: Electric Indigo → Vivid Purple → Amethyst
     const COLORS = [
-      "rgba(0,212,170,",
-      "rgba(99,102,241,",
-      "rgba(0,212,170,",
+      "rgba(99,102,241,",  // #6366f1 Electric Indigo
+      "rgba(139,92,246,",  // #8b5cf6 Vivid Purple
+      "rgba(168,85,247,",  // #a855f7 Amethyst
     ];
 
     const spawnBeam = (): Beam => {
@@ -65,9 +66,9 @@ export function BackgroundBeams() {
       // Aurora background orbs
       const time = Date.now() * 0.0003;
       const orbs = [
-        { x: canvas.width * 0.2, y: canvas.height * 0.3, r: 300, color: "rgba(0,212,170,0.04)" },
-        { x: canvas.width * 0.8, y: canvas.height * 0.6, r: 400, color: "rgba(99,102,241,0.04)" },
-        { x: canvas.width * 0.5, y: canvas.height * 0.1, r: 250, color: "rgba(0,212,170,0.03)" },
+        { x: canvas.width * 0.2, y: canvas.height * 0.3, r: 350, color: "rgba(99,102,241,0.05)" },
+        { x: canvas.width * 0.8, y: canvas.height * 0.6, r: 420, color: "rgba(168,85,247,0.05)" },
+        { x: canvas.width * 0.5, y: canvas.height * 0.1, r: 280, color: "rgba(139,92,246,0.04)" },
       ];
       orbs.forEach((orb, i) => {
         const px = orb.x + Math.sin(time + i * 2.1) * 60;

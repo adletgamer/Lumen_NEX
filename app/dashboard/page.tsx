@@ -57,7 +57,7 @@ export default function DashboardPage() {
             {/* Avatar */}
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0"
-              style={{ background: "rgba(0,212,170,0.15)", color: "#00d4aa", border: "1px solid rgba(0,212,170,0.3)" }}
+              style={{ background: "rgba(99,102,241,0.15)", color: "#8b5cf6", border: "1px solid rgba(99,102,241,0.3)" }}
               role="img"
               aria-label="User avatar"
             >
@@ -69,28 +69,28 @@ export default function DashboardPage() {
         {/* NexusCore status bar */}
         <div
           className="glass-bright rounded-2xl px-5 py-4 flex items-center gap-5"
-          style={{ border: "1px solid rgba(0,212,170,0.2)" }}
+          style={{ border: "1px solid rgba(99,102,241,0.2)" }}
         >
           {/* Lightweight pulsing orb — avoids mounting a full WebGL canvas in a small slot */}
           <div className="relative flex-shrink-0 w-12 h-12 flex items-center justify-center" aria-hidden="true">
             <motion.div
               className="absolute inset-0 rounded-full"
-              style={{ background: "rgba(0,212,170,0.12)" }}
+              style={{ background: "rgba(99,102,241,0.12)" }}
               animate={{ scale: [1, 1.35, 1], opacity: [0.6, 0.15, 0.6] }}
               transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
             />
             <div
               className="w-6 h-6 rounded-full"
               style={{
-                background: "radial-gradient(circle at 35% 35%, #00d4aa, rgba(0,212,170,0.4))",
-                boxShadow: "0 0 16px rgba(0,212,170,0.6)",
+                background: "radial-gradient(circle at 35% 35%, #8b5cf6, rgba(99,102,241,0.4))",
+                boxShadow: "0 0 16px rgba(99,102,241,0.6)",
               }}
             />
           </div>
           <div>
             <p
               className="text-xs font-mono uppercase tracking-widest mb-0.5"
-              style={{ color: "#00d4aa" }}
+              style={{ color: "#8b5cf6" }}
             >
               Nexus Core — Idle
             </p>
