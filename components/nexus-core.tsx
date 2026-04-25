@@ -1,9 +1,171 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { motion, useAnimationFrame } from "framer-motion";
+import { useRef, useMemo } from "react";
+import { Canvas, useFrame, extend } from "@react-three/fiber";
+import { Sphere, shaderMaterial } from "@react-three/drei";
+import * as THREE from "three";
 
-type NexusState = "idle" | "processing";
+// ── Custom GLSL Shader ───────────────────────────────────────────────────────
+const NexusShaderMaterial = shaderMaterial(
+  {
+    uTime: 0,
+    uProcessing: 0,
+    uColorA: new THREE.Color("#00d4aa"),
+    uColorB: new THREE.Color("#6366f1"),
+    uColorC: new THREE.Color("#0ea5e9"),
+  },
+  /* vertex */
+  `
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    void main() {
+      vUv = uv;
+      vNormal = normalize(normalMatrix * normal);
+      vPosition = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  /* fragment */
+  `
+    uniform float uTime;
+    uniform float uProcessing;
+    uniform vec3 uColorA;
+    uniform vec3 uColorB;
+    uniform vec3 uColorC;
+    varying vec2 vUv;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+
+    vec3 hash3(vec3 p) {
+      p = fract(p * vec3(0.1031, 0.1030, 0.0973));
+      p += dot(p, p.yxz + 33.33);
+      return fract((p.xxy + p.yxx) * p.zyx);
+    }
+    float noise(vec3 p) {
+      vec3 i = floor(p); vec3 f = fract(p);
+      vec3 u = f * f * (3.0 - 2.0 * f);
+      float a = dot(hash3(i),              f);
+      float b = dot(hash3(i + vec3(1,0,0)), f - vec3(1,0,0));
+      float c = dot(hash3(i + vec3(0,1,0)), f - vec3(0,1,0));
+      float d = dot(hash3(i + vec3(1,1,0)), f - vec3(1,1,0));
+      float e = dot(hash3(i + vec3(0,0,1)), f - vec3(0,0,1));
+      float ff= dot(hash3(i + vec3(1,0,1)), f - vec3(1,0,1));
+      float g = dot(hash3(i + vec3(0,1,1)), f - vec3(0,1,1));
+      float h = dot(hash3(i + vec3(1,1,1)), f - vec3(1,1,1));
+      return mix(mix(mix(a,b,u.x),mix(c,d,u.x),u.y),
+                 mix(mix(e,ff,u.x),mix(g,h,u.x),u.y),u.z)*0.5+0.5;
+    }
+    float fbm(vec3 p) {
+      float v = 0.0; float a = 0.5;
+      for(int i=0;i<5;i++){v+=a*noise(p);p=p*2.0+vec3(1.7,9.2,3.1);a*=0.5;}
+      return v;
+    }
+    void main() {
+      float spd = mix(0.35, 1.5, uProcessing);
+      vec3 p = vPosition * 2.2 + vec3(uTime * spd * 0.28);
+      float n1 = fbm(p);
+      float n2 = fbm(p + vec3(uTime * spd * 0.13, 0.0, uTime * spd * 0.09));
+      float swirl = fbm(vPosition * 2.8 + vec3(sin(uTime*spd*0.5)*2.0, cos(uTime*spd*0.3)*2.0, uTime*spd*0.18));
+
+      vec3 col = mix(uColorA, uColorB, n1);
+      col = mix(col, uColorC, n2 * 0.55);
+      col = mix(col, uColorA * 1.6, swirl * 0.38);
+
+      float fresnel = pow(1.0 - abs(dot(vNormal, vec3(0.0,0.0,1.0))), 2.8);
+      col += mix(uColorA, uColorB, uProcessing) * fresnel * 1.4;
+
+      float pulse = 0.82 + 0.18 * sin(uTime * spd * mix(1.8, 5.5, uProcessing));
+      col *= pulse;
+
+      float streak = smoothstep(0.62, 1.0, swirl) * mix(0.3, 1.2, uProcessing);
+      col += uColorA * streak * 0.35;
+
+      gl_FragColor = vec4(col, 0.9 + fresnel * 0.1);
+    }
+  `
+);
+
+extend({ NexusShaderMaterial });
+
+// ── Orb Scene ────────────────────────────────────────────────────────────────
+function OrbScene({ processing }: { processing: boolean }) {
+  const matRef = useRef<THREE.ShaderMaterial & { uTime: number; uProcessing: number }>(null);
+  const glowRef = useRef<THREE.Mesh>(null);
+  const ring1Ref = useRef<THREE.Mesh>(null);
+  const ring2Ref = useRef<THREE.Mesh>(null);
+
+  const glowMat = useMemo(
+    () =>
+      new THREE.MeshBasicMaterial({
+        color: processing ? "#6366f1" : "#00d4aa",
+        transparent: true,
+        opacity: 0.1,
+        side: THREE.BackSide,
+        depthWrite: false,
+      }),
+    [processing]
+  );
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    if (matRef.current) {
+      matRef.current.uTime = t;
+      matRef.current.uProcessing = THREE.MathUtils.lerp(
+        matRef.current.uProcessing,
+        processing ? 1.0 : 0.0,
+        0.04
+      );
+    }
+    if (glowRef.current) {
+      glowRef.current.scale.setScalar(1.26 + Math.sin(t * (processing ? 2.8 : 1.1)) * 0.05);
+    }
+    if (ring1Ref.current) {
+      ring1Ref.current.rotation.y = t * 0.4;
+      ring1Ref.current.rotation.z = t * 0.15;
+    }
+    if (ring2Ref.current) {
+      ring2Ref.current.rotation.y = -t * 0.3;
+      ring2Ref.current.rotation.x = t * 0.2;
+    }
+  });
+
+  return (
+    <>
+      {/* Fake glow shell */}
+      <Sphere ref={glowRef} args={[1, 32, 32]}>
+        <primitive object={glowMat} attach="material" />
+      </Sphere>
+
+      {/* Main orb with GLSL shader */}
+      <Sphere args={[0.78, 128, 128]}>
+        {/* @ts-expect-error custom shader */}
+        <nexusShaderMaterial
+          ref={matRef}
+          uTime={0}
+          uProcessing={0}
+          uColorA={new THREE.Color("#00d4aa")}
+          uColorB={new THREE.Color("#6366f1")}
+          uColorC={new THREE.Color("#0ea5e9")}
+          transparent
+        />
+      </Sphere>
+
+      {/* Orbital rings */}
+      <mesh ref={ring1Ref} rotation={[Math.PI / 2.4, 0, 0]}>
+        <torusGeometry args={[1.06, 0.007, 8, 128]} />
+        <meshBasicMaterial color="#00d4aa" transparent opacity={0.3} depthWrite={false} />
+      </mesh>
+      <mesh ref={ring2Ref} rotation={[Math.PI / 3.5, Math.PI / 5, 0]}>
+        <torusGeometry args={[1.18, 0.004, 8, 128]} />
+        <meshBasicMaterial color="#6366f1" transparent opacity={0.18} depthWrite={false} />
+      </mesh>
+    </>
+  );
+}
+
+// ── Public Component ──────────────────────────────────────────────────────────
+export type NexusState = "idle" | "processing";
 
 interface NexusCoreProps {
   state?: NexusState;
@@ -11,177 +173,41 @@ interface NexusCoreProps {
   className?: string;
 }
 
-interface Particle {
-  x: number;
-  y: number;
-  angle: number;
-  radius: number;
-  speed: number;
-  size: number;
-  opacity: number;
-}
-
-const IDLE_COLOR = "#00d4aa";
-const PROCESSING_COLOR = "#6366f1";
-const PARTICLE_COUNT = 80;
-
-export function NexusCore({
-  state = "idle",
-  size = 320,
-  className,
-}: NexusCoreProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particlesRef = useRef<Particle[]>([]);
-  const timeRef = useRef(0);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    particlesRef.current = Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
-      angle: (i / PARTICLE_COUNT) * Math.PI * 2,
-      radius: 60 + Math.random() * 50,
-      speed: 0.002 + Math.random() * 0.003,
-      size: 1 + Math.random() * 2.5,
-      opacity: 0.3 + Math.random() * 0.7,
-      x: 0,
-      y: 0,
-    }));
-  }, []);
-
-  useAnimationFrame((time) => {
-    if (!canvasRef.current || !mounted) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    timeRef.current = time * 0.001;
-    const t = timeRef.current;
-    const cx = size / 2;
-    const cy = size / 2;
-    const color = state === "processing" ? PROCESSING_COLOR : IDLE_COLOR;
-
-    ctx.clearRect(0, 0, size, size);
-
-    // Core glow gradient
-    const pulseScale = 1 + Math.sin(t * (state === "processing" ? 4 : 1.5)) * 0.06;
-    const glowRadius = 55 * pulseScale;
-
-    const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, glowRadius * 2);
-    gradient.addColorStop(0, `${color}40`);
-    gradient.addColorStop(0.4, `${color}20`);
-    gradient.addColorStop(1, "transparent");
-
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(cx, cy, glowRadius * 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Inner core sphere
-    const coreGrad = ctx.createRadialGradient(
-      cx - glowRadius * 0.3,
-      cy - glowRadius * 0.3,
-      0,
-      cx,
-      cy,
-      glowRadius * 0.9
-    );
-    coreGrad.addColorStop(0, `${color}cc`);
-    coreGrad.addColorStop(0.5, `${color}66`);
-    coreGrad.addColorStop(1, `${color}11`);
-
-    ctx.fillStyle = coreGrad;
-    ctx.beginPath();
-    ctx.arc(cx, cy, glowRadius * 0.9, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Orbital ring
-    ctx.strokeStyle = `${color}30`;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, glowRadius * 1.8, glowRadius * 0.5, t * 0.3, 0, Math.PI * 2);
-    ctx.stroke();
-
-    ctx.strokeStyle = `${color}20`;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, glowRadius * 1.5, glowRadius * 0.4, -t * 0.2, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Particles
-    particlesRef.current.forEach((p) => {
-      p.angle += p.speed * (state === "processing" ? 2 : 1);
-      const wave = Math.sin(t * 2 + p.angle * 3) * 8;
-      const r = p.radius + wave;
-      p.x = cx + Math.cos(p.angle) * r;
-      p.y = cy + Math.sin(p.angle) * r * 0.6;
-
-      const dist = Math.hypot(p.x - cx, p.y - cy);
-      const depthOpacity = 0.2 + (p.y - cy + size / 2) / size;
-
-      ctx.fillStyle = `${color}${Math.floor(p.opacity * depthOpacity * 255)
-        .toString(16)
-        .padStart(2, "0")}`;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size * (state === "processing" ? 1.3 : 1), 0, Math.PI * 2);
-      ctx.fill();
-
-      // Connection lines between nearby particles
-      if (dist < glowRadius * 2.2 && p.opacity > 0.7) {
-        ctx.strokeStyle = `${color}0a`;
-        ctx.lineWidth = 0.5;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(p.x, p.y);
-        ctx.stroke();
-      }
-    });
-
-    // Central bright dot
-    const dotGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 12);
-    dotGrad.addColorStop(0, `${color}ff`);
-    dotGrad.addColorStop(0.5, `${color}99`);
-    dotGrad.addColorStop(1, "transparent");
-    ctx.fillStyle = dotGrad;
-    ctx.beginPath();
-    ctx.arc(cx, cy, 12, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
+export function NexusCore({ state = "idle", size = 320, className }: NexusCoreProps) {
   return (
     <div
+      style={{ width: size, height: size, position: "relative", flexShrink: 0 }}
       className={className}
-      style={{ width: size, height: size, position: "relative" }}
+      aria-label={`NexusCore — ${state}`}
+      role="img"
     >
-      {/* Outer ambient glow */}
-      <motion.div
-        className="absolute inset-0 rounded-full"
-        animate={{
-          boxShadow:
+      {/* Ambient glow behind canvas */}
+      <div
+        style={{
+          position: "absolute",
+          inset: "15%",
+          borderRadius: "50%",
+          background:
             state === "processing"
-              ? [
-                  "0 0 60px rgba(99,102,241,0.3), 0 0 120px rgba(99,102,241,0.1)",
-                  "0 0 90px rgba(99,102,241,0.5), 0 0 180px rgba(99,102,241,0.2)",
-                  "0 0 60px rgba(99,102,241,0.3), 0 0 120px rgba(99,102,241,0.1)",
-                ]
-              : [
-                  "0 0 60px rgba(0,212,170,0.2), 0 0 120px rgba(0,212,170,0.08)",
-                  "0 0 80px rgba(0,212,170,0.35), 0 0 160px rgba(0,212,170,0.12)",
-                  "0 0 60px rgba(0,212,170,0.2), 0 0 120px rgba(0,212,170,0.08)",
-                ],
+              ? "radial-gradient(circle, rgba(99,102,241,0.4) 0%, transparent 70%)"
+              : "radial-gradient(circle, rgba(0,212,170,0.32) 0%, transparent 70%)",
+          filter: "blur(24px)",
+          pointerEvents: "none",
+          transition: "background 0.8s ease",
         }}
-        transition={{
-          duration: state === "processing" ? 0.8 : 2.5,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+        aria-hidden="true"
       />
-      <canvas
-        ref={canvasRef}
-        width={size}
-        height={size}
-        style={{ imageRendering: "pixelated" }}
-        aria-label={`Nexus Core — ${state}`}
-        role="img"
-      />
+      <Canvas
+        dpr={[1, 2]}
+        camera={{ position: [0, 0, 2.6], fov: 42 }}
+        gl={{ antialias: true, alpha: true }}
+        style={{ background: "transparent" }}
+      >
+        <ambientLight intensity={0.5} />
+        <pointLight position={[2, 2, 2]} intensity={1.4} color="#00d4aa" />
+        <pointLight position={[-2, -1, -2]} intensity={0.7} color="#6366f1" />
+        <OrbScene processing={state === "processing"} />
+      </Canvas>
     </div>
   );
 }

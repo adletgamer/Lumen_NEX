@@ -1,6 +1,8 @@
+"use client";
+
+import { motion } from "framer-motion";
 import { BentoGrid } from "@/components/bento-grid";
 import { AgenticFeed } from "@/components/agentic-feed";
-import { NexusCore } from "@/components/nexus-core";
 import { Bell, Search } from "lucide-react";
 
 export default function DashboardPage() {
@@ -69,7 +71,22 @@ export default function DashboardPage() {
           className="glass-bright rounded-2xl px-5 py-4 flex items-center gap-5"
           style={{ border: "1px solid rgba(0,212,170,0.2)" }}
         >
-          <NexusCore size={64} state="idle" />
+          {/* Lightweight pulsing orb — avoids mounting a full WebGL canvas in a small slot */}
+          <div className="relative flex-shrink-0 w-12 h-12 flex items-center justify-center" aria-hidden="true">
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              style={{ background: "rgba(0,212,170,0.12)" }}
+              animate={{ scale: [1, 1.35, 1], opacity: [0.6, 0.15, 0.6] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <div
+              className="w-6 h-6 rounded-full"
+              style={{
+                background: "radial-gradient(circle at 35% 35%, #00d4aa, rgba(0,212,170,0.4))",
+                boxShadow: "0 0 16px rgba(0,212,170,0.6)",
+              }}
+            />
+          </div>
           <div>
             <p
               className="text-xs font-mono uppercase tracking-widest mb-0.5"

@@ -14,9 +14,9 @@ interface BentoCardProps {
 
 function BentoCard({ className, children, glowColor = "none" }: BentoCardProps) {
   const glowMap = {
-    teal: "rgba(0,212,170,0.08)",
-    indigo: "rgba(99,102,241,0.08)",
-    amber: "rgba(245,158,11,0.08)",
+    teal: "rgba(0,212,170,0.1)",
+    indigo: "rgba(99,102,241,0.1)",
+    amber: "rgba(245,158,11,0.1)",
     none: "transparent",
   };
 
@@ -24,11 +24,13 @@ function BentoCard({ className, children, glowColor = "none" }: BentoCardProps) 
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
+      whileHover={{ rotateX: -2, rotateY: 3, scale: 1.015, transition: { duration: 0.2 } }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className={cn("glass-bright rounded-2xl overflow-hidden flex flex-col", className)}
       style={{
-        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 1px var(--color-border), 0 4px 32px ${glowMap[glowColor]}`,
+        perspective: 900,
+        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(255,255,255,0.08), 0 4px 32px ${glowMap[glowColor]}`,
       }}
+      className={cn("glass-bright rounded-2xl overflow-hidden flex flex-col", className)}
     >
       {children}
     </motion.div>
