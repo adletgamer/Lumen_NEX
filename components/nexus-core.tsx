@@ -6,16 +6,11 @@ import { Float, Sphere, MeshDistortMaterial } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 
-// ── Type for MeshDistortMaterial ref ─────────────────────────────────────────
-type DistortMaterialRef = THREE.MeshStandardMaterial & {
-  distort: number;
-  speed: number;
-};
-
 // ── Inner Orb Scene ───────────────────────────────────────────────────────────
 function OrbScene({ isThinking }: { isThinking: boolean }) {
   // innerRef syncs distort amplitude with the isThinking prop
-  const innerRef = useRef<DistortMaterialRef>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const innerRef = useRef<any>(null);
 
   useFrame((_, delta) => {
     if (!innerRef.current) return;
