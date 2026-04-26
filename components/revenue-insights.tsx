@@ -27,7 +27,7 @@ export function RevenueInsights() {
               <TrendingUp className="w-3.5 h-3.5" style={{ color: "#6366f1" }} />
             </div>
             <span className="text-xs font-mono font-semibold uppercase tracking-widest" style={{ color: "#6366f1" }}>
-              Revenue Insights
+              Revenue Intelligence
             </span>
           </div>
           <div className="flex items-baseline gap-2 mt-2">

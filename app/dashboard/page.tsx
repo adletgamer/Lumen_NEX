@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { BentoGrid } from "@/components/bento-grid";
-import { Bell, Search, Cpu, Layers3 } from "lucide-react";
+import { Bell, Search, Layers3 } from "lucide-react";
 
 export default function DashboardPage() {
   return (
@@ -26,14 +26,13 @@ export default function DashboardPage() {
           <div
             className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
             style={{
-              background: "linear-gradient(135deg, rgba(99,102,241,0.3) 0%, rgba(168,85,247,0.3) 100%)",
-              border: "1px solid rgba(168,85,247,0.3)",
-              boxShadow: "0 0 16px rgba(99,102,241,0.25)",
+              background: "linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(168,85,247,0.2) 100%)",
+              border: "1px solid rgba(168,85,247,0.25)",
             }}
           >
             <Layers3 className="w-4 h-4" style={{ color: "#a855f7" }} />
           </div>
-          <span className="hidden sm:block text-sm font-bold tracking-tight text-balance" style={{ color: "#e8eaf6" }}>
+          <span className="hidden sm:block text-sm font-semibold tracking-tight text-balance font-sans" style={{ color: "#e8eaf6" }}>
             Lumen NEX
           </span>
         </div>
@@ -45,7 +44,7 @@ export default function DashboardPage() {
           </span>
           <span className="text-xs" style={{ color: "rgba(255,255,255,0.15)" }}>/</span>
           <span className="text-xs font-mono font-medium" style={{ color: "#818cf8" }}>
-            command-center
+            home
           </span>
         </div>
 
@@ -54,8 +53,8 @@ export default function DashboardPage() {
           <div
             className="flex items-center gap-2 rounded-full px-3 py-1.5"
             style={{
-              background: "rgba(99,102,241,0.08)",
-              border: "1px solid rgba(99,102,241,0.18)",
+              background: "rgba(99,102,241,0.06)",
+              border: "1px solid rgba(99,102,241,0.15)",
             }}
           >
             <motion.div
@@ -77,8 +76,8 @@ export default function DashboardPage() {
         <div
           className="hidden sm:flex items-center gap-2 rounded-xl px-3 py-2"
           style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.07)",
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.06)",
             minWidth: "180px",
           }}
         >
@@ -96,9 +95,9 @@ export default function DashboardPage() {
           <kbd
             className="hidden md:block text-[10px] font-mono px-1.5 py-0.5 rounded flex-shrink-0"
             style={{
-              background: "rgba(255,255,255,0.05)",
+              background: "rgba(255,255,255,0.04)",
               color: "var(--color-muted)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.06)",
             }}
           >
             ⌘K
@@ -110,8 +109,8 @@ export default function DashboardPage() {
           whileTap={{ scale: 0.92 }}
           className="relative w-9 h-9 rounded-xl flex items-center justify-center"
           style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.07)",
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.06)",
           }}
           aria-label="Notifications — 3 unread"
         >
@@ -128,10 +127,10 @@ export default function DashboardPage() {
 
         {/* ── Avatar ── */}
         <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center text-[11px] font-bold font-mono flex-shrink-0"
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-[11px] font-semibold font-mono flex-shrink-0"
           style={{
-            background: "linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(168,85,247,0.25) 100%)",
-            border: "1px solid rgba(168,85,247,0.3)",
+            background: "linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(168,85,247,0.15) 100%)",
+            border: "1px solid rgba(168,85,247,0.2)",
             color: "#c4b5fd",
           }}
           role="img"
@@ -141,36 +140,8 @@ export default function DashboardPage() {
         </div>
       </motion.header>
 
-      {/* ── Page Title ── */}
-      <div className="px-6 pt-6 pb-4">
-        <motion.div
-          initial={{ opacity: 0, filter: "blur(12px)", y: 20 }}
-          animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-          transition={{ duration: 0.55, delay: 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
-          className="flex items-center gap-3"
-        >
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{
-              background: "rgba(99,102,241,0.12)",
-              border: "1px solid rgba(99,102,241,0.2)",
-            }}
-          >
-            <Cpu className="w-4.5 h-4.5" style={{ color: "#6366f1" }} />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold font-sans text-balance" style={{ color: "#e8eaf6" }}>
-              Command Center
-            </h1>
-            <p className="text-xs font-mono" style={{ color: "var(--color-muted)" }}>
-              Autonomous business overview — live
-            </p>
-          </div>
-        </motion.div>
-      </div>
-
-      {/* ── Bento Grid ── */}
-      <main className="flex-1 px-6 pb-8" role="main">
+      {/* ── Bento Grid (with integrated hero) ── */}
+      <main className="flex-1 px-6 py-8 md:py-12" role="main">
         <BentoGrid />
       </main>
     </div>

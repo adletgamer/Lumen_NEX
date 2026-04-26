@@ -41,7 +41,7 @@ export function ActiveTasks() {
           <CheckSquare className="w-3.5 h-3.5" style={{ color: "#6366f1" }} />
         </div>
         <span className="text-xs font-mono font-semibold uppercase tracking-widest" style={{ color: "#6366f1" }}>
-          Active Tasks
+          Agentic Automation
         </span>
         <motion.div
           key={openCount}
