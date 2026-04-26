@@ -29,7 +29,7 @@ function GeneratedChart() {
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-mono uppercase tracking-wider" style={{ color: "#00d4aa" }}>
+          <p className="text-xs font-mono uppercase tracking-wider" style={{ color: "#6366f1" }}>
             AI — Revenue Insight
           </p>
           <p className="text-xl font-bold" style={{ color: "var(--color-foreground)" }}>
@@ -46,8 +46,8 @@ function GeneratedChart() {
           <AreaChart data={CHART_DATA} margin={{ top: 4, right: 0, left: -24, bottom: 0 }}>
             <defs>
               <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#00d4aa" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#00d4aa" stopOpacity={0} />
+                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.35} />
+                <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
               </linearGradient>
             </defs>
             <XAxis
@@ -65,16 +65,16 @@ function GeneratedChart() {
                 color: "#f0f2f8",
                 fontSize: "12px",
               }}
-              cursor={{ stroke: "rgba(0,212,170,0.2)" }}
+              cursor={{ stroke: "rgba(99,102,241,0.25)" }}
             />
             <Area
               type="monotone"
               dataKey="revenue"
-              stroke="#00d4aa"
+              stroke="#6366f1"
               strokeWidth={2}
               fill="url(#revenueGrad)"
               dot={false}
-              activeDot={{ r: 4, fill: "#00d4aa" }}
+              activeDot={{ r: 4, fill: "#6366f1" }}
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -163,7 +163,7 @@ export function GenerativeSlot({
             animate={{ opacity: [0.3, 0.7, 0.3] }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1.5, repeat: Infinity }}
-            style={{ boxShadow: "inset 0 0 0 1px rgba(99,102,241,0.3)" }}
+            style={{ boxShadow: "inset 0 0 0 1px rgba(168,85,247,0.3)" }}
           />
         )}
       </AnimatePresence>

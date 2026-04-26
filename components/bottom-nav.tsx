@@ -40,17 +40,17 @@ export function BottomNav() {
               <motion.div
                 layoutId="bottom-nav-indicator"
                 className="absolute inset-0 rounded-xl"
-                style={{ background: "rgba(0,212,170,0.1)" }}
+                style={{ background: "rgba(99,102,241,0.1)" }}
                 transition={{ type: "spring", stiffness: 400, damping: 30 }}
               />
             )}
             <Icon
               className="relative z-10 w-5 h-5"
-              style={{ color: active ? "#00d4aa" : "var(--color-muted)" }}
+              style={{ color: active ? "#818cf8" : "var(--color-muted)" }}
             />
             <span
               className="relative z-10 text-[10px] font-medium"
-              style={{ color: active ? "#00d4aa" : "var(--color-muted)" }}
+              style={{ color: active ? "#818cf8" : "var(--color-muted)" }}
             >
               {item.label}
             </span>

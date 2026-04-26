@@ -1,16 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({
+const geistSans = Geist({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-geist",
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const geistMono = Geist_Mono({
   subsets: ["latin"],
-  variable: "--font-jetbrains",
+  variable: "--font-geist-mono",
   display: "swap",
 });
 
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#08090c",
+  themeColor: "#020617",
   width: "device-width",
   initialScale: 1,
   userScalable: false,
@@ -37,8 +37,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`} style={{ background: "#08090c" }}>
-      <body className="font-sans antialiased" style={{ background: "#08090c", color: "#f0f2f8" }}>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} bg-background`}
+      style={{ background: "#020617" }}
+    >
+      <body className="font-sans antialiased bg-background text-foreground">
         {children}
       </body>
     </html>

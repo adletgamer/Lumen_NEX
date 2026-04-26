@@ -1,36 +1,35 @@
 @import "tailwindcss";
 
 @theme {
-  /* ─── Color Tokens ─── */
-  --color-background: #08090c;
-  --color-surface: #0e1117;
-  --color-surface-elevated: #141720;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-bright: rgba(255, 255, 255, 0.15);
+  /* ─── Quantum Amethyst Palette ─── */
+  --color-background: #020617;
+  --color-surface: #0a0e1a;
+  --color-surface-elevated: #0f1629;
 
-  --color-foreground: #f0f2f8;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-bright: rgba(255, 255, 255, 0.12);
+
+  --color-foreground: #e8eaf6;
   --color-muted: #6b7280;
   --color-muted-foreground: #9ca3af;
 
-  --color-teal: #00d4aa;
-  --color-teal-dim: rgba(0, 212, 170, 0.15);
-  --color-teal-glow: rgba(0, 212, 170, 0.35);
-
+  /* Electric Indigo */
   --color-indigo: #6366f1;
   --color-indigo-dim: rgba(99, 102, 241, 0.15);
-  --color-indigo-glow: rgba(99, 102, 241, 0.4);
+  --color-indigo-glow: rgba(99, 102, 241, 0.45);
 
-  --color-amber: #f59e0b;
-  --color-amber-dim: rgba(245, 158, 11, 0.15);
+  /* Amethyst Purple */
+  --color-amethyst: #a855f7;
+  --color-amethyst-dim: rgba(168, 85, 247, 0.15);
+  --color-amethyst-glow: rgba(168, 85, 247, 0.45);
 
   --color-danger: #ef4444;
   --color-danger-dim: rgba(239, 68, 68, 0.15);
+  --color-success: #10b981;
 
   /* ─── Typography ─── */
-  /* NOTE: Next.js injects --font-inter and --font-jetbrains on <html> at runtime.
-     Tailwind @theme resolves at build time so we reference them via a CSS override below. */
-  --font-sans: "Inter", "system-ui", sans-serif;
-  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --font-sans: "Geist", "system-ui", sans-serif;
+  --font-mono: "Geist Mono", monospace;
 
   /* ─── Radius ─── */
   --radius: 0.75rem;
@@ -39,10 +38,10 @@
   --radius-xl: 1.5rem;
 }
 
-/* ─── Runtime font override — Next.js injects these CSS vars on <html> ─── */
+/* ─── Runtime font override — Next.js injects CSS vars on <html> ─── */
 :root {
-  --font-sans: var(--font-inter, "Inter"), "system-ui", sans-serif;
-  --font-mono: var(--font-jetbrains, "JetBrains Mono"), "Fira Code", monospace;
+  --font-sans: var(--font-geist, "Geist"), "system-ui", sans-serif;
+  --font-mono: var(--font-geist-mono, "Geist Mono"), monospace;
 }
 
 /* ─── Base Reset ─── */
@@ -53,6 +52,7 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  background-color: #020617;
 }
 
 body {
@@ -73,40 +73,59 @@ body {
   background: var(--color-surface);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(99, 102, 241, 0.4);
 }
 
-/* ─── Glass Utility ─── */
+/* ─── Scrollbar None Utility ─── */
+@utility scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ─── Glass Utilities ─── */
 .glass {
-  background: rgba(14, 17, 23, 0.6);
+  background: rgba(10, 14, 26, 0.55);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   border: 1px solid var(--color-border);
 }
 
 .glass-bright {
-  background: rgba(20, 23, 32, 0.7);
-  backdrop-filter: blur(20px) saturate(200%);
-  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  background: rgba(15, 22, 41, 0.6);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
   border: 1px solid var(--color-border-bright);
 }
 
+/* ─── Bento Card (Quiet Authority) ─── */
+.bento-card {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(48px) saturate(180%);
+  -webkit-backdrop-filter: blur(48px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
 /* ─── Glow Utilities ─── */
-.glow-teal {
-  box-shadow: 0 0 20px var(--color-teal-glow), 0 0 60px rgba(0, 212, 170, 0.15);
-}
 .glow-indigo {
-  box-shadow: 0 0 20px var(--color-indigo-glow), 0 0 60px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 24px var(--color-indigo-glow), 0 0 80px rgba(99, 102, 241, 0.12);
 }
-.text-glow-teal {
-  text-shadow: 0 0 20px var(--color-teal-glow);
+.glow-amethyst {
+  box-shadow: 0 0 24px var(--color-amethyst-glow), 0 0 80px rgba(168, 85, 247, 0.12);
 }
 .text-glow-indigo {
   text-shadow: 0 0 20px var(--color-indigo-glow);
+}
+.text-glow-amethyst {
+  text-shadow: 0 0 20px var(--color-amethyst-glow);
 }
 
 /* ─── Shimmer Loading ─── */
@@ -150,8 +169,11 @@ body {
   animation: beam-travel 2.5s ease-in-out infinite;
 }
 
-/* ─── Particle Pulse ─── */
-@keyframes particle-float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
-  50% { transform: translateY(-8px) rotate(180deg); opacity: 1; }
+/* ─── Terminal cursor blink ─── */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.terminal-cursor {
+  animation: cursor-blink 1s step-end infinite;
 }

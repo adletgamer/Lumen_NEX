@@ -9,8 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-        mono: ["var(--font-jetbrains)", "JetBrains Mono", "monospace"],
+        sans: ["var(--font-geist)", "Geist", "system-ui", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "Geist Mono", "monospace"],
       },
       colors: {
         background: "var(--color-background)",
@@ -18,9 +18,8 @@ const config: Config = {
         "surface-elevated": "var(--color-surface-elevated)",
         foreground: "var(--color-foreground)",
         muted: "var(--color-muted)",
-        teal: "var(--color-teal)",
         indigo: "var(--color-indigo)",
-        amber: "var(--color-amber)",
+        amethyst: "var(--color-amethyst)",
       },
       borderRadius: {
         DEFAULT: "var(--radius)",
