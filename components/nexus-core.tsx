@@ -122,6 +122,7 @@ function OrbScene({ isThinking }: { isThinking: boolean }) {
   const glowRef = useRef<THREE.Mesh>(null);
   const ring1Ref = useRef<THREE.Mesh>(null);
   const ring2Ref = useRef<THREE.Mesh>(null);
+  const timeRef = useRef(0);
 
   const glowMat = useMemo(
     () =>
@@ -135,10 +136,10 @@ function OrbScene({ isThinking }: { isThinking: boolean }) {
     [isThinking]
   );
 
-  useFrame(({ clock }) => {
-    const t = clock.getElapsedTime();
+  useFrame((state, delta) => {
+    timeRef.current += delta;
+    const t = timeRef.current;
     const rotMult = isThinking ? 2.0 : 1.0;
-
     if (matRef.current) {
       matRef.current.uTime = t;
       matRef.current.uThinking = THREE.MathUtils.lerp(
