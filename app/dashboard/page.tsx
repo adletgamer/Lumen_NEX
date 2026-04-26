@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { BentoGrid } from "@/components/bento-grid";
 import { Bell, Search, Layers3 } from "lucide-react";
 
@@ -22,7 +23,7 @@ export default function DashboardPage() {
         }}
       >
         {/* Logo mark */}
-        <div className="flex items-center gap-2.5 mr-2">
+        <Link href="/" className="flex items-center gap-2.5 mr-2 hover:opacity-80 transition-opacity">
           <div
             className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
             style={{
@@ -35,7 +36,7 @@ export default function DashboardPage() {
           <span className="hidden sm:block text-sm font-semibold tracking-tight text-balance font-sans" style={{ color: "#e8eaf6" }}>
             Lumen NEX
           </span>
-        </div>
+        </Link>
 
         {/* Page breadcrumb */}
         <div className="hidden md:flex items-center gap-1.5">
