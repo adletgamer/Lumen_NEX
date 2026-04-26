@@ -1,16 +1,122 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
 import Link from "next/link";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import {
-  ArrowRight, Zap, Shield, TrendingUp, Cpu, Globe, Lock,
-  MessageCircle, CreditCard, CheckCircle2,
+  ArrowRight,
+  Zap,
+  Shield,
+  TrendingUp,
+  Cpu,
+  Globe,
+  Lock,
+  MessageCircle,
+  CreditCard,
+  CheckCircle2,
 } from "lucide-react";
 import { BackgroundBeams } from "@/components/background-beams";
-import { NexusCore } from "@/components/nexus-core";
 
-// ── Mouse-tilt card ───────────────────────────────────────────────────────────
+// ── Splay Animation (cards stagger FROM center outwards) ──────────────────────
+const splayVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: {
+    opacity: 0,
+    filter: "blur(10px)",
+    scale: 0.96,
+  },
+  visible: {
+    opacity: 1,
+    filter: "blur(0px)",
+    scale: 1,
+    transition: {
+      duration: 0.6,
+      ease: [0.22, 1, 0.36, 1],
+    },
+  },
+};
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+};
+
+const stagger = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08 } },
+};
+
+// ── Magnetic Hover Card ───────────────────────────────────────────────────────
+function MagneticCard({
+  children,
+  className,
+  glowColor = "none",
+}: {
+  children: React.ReactNode;
+  className?: string;
+  glowColor?: "indigo" | "amethyst" | "none";
+}) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [rotateX, setRotateX] = useState(0);
+  const [rotateY, setRotateY] = useState(0);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const deltaX = (e.clientX - centerX) / (rect.width / 2);
+    const deltaY = (e.clientY - centerY) / (rect.height / 2);
+    setRotateY(deltaX * 4);
+    setRotateX(-deltaY * 4);
+  };
+
+  const handleMouseLeave = () => {
+    setRotateX(0);
+    setRotateY(0);
+  };
+
+  const glowStyle =
+    glowColor === "indigo"
+      ? { boxShadow: "0 0 0 1px rgba(99,102,241,0.15), 0 8px 40px rgba(99,102,241,0.1)" }
+      : glowColor === "amethyst"
+      ? { boxShadow: "0 0 0 1px rgba(168,85,247,0.15), 0 8px 40px rgba(168,85,247,0.1)" }
+      : { boxShadow: "0 8px 24px rgba(0,0,0,0.25)" };
+
+  return (
+    <motion.div
+      ref={cardRef}
+      variants={cardVariants}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        ...glowStyle,
+        transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
+        transition: "transform 0.15s ease-out",
+        willChange: "transform, opacity, filter",
+        background: "rgba(255,255,255,0.02)",
+        backdropFilter: "blur(48px) saturate(180%)",
+        WebkitBackdropFilter: "blur(48px) saturate(180%)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: "1.25rem",
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// ── Mouse-tilt card (simple version for bento features) ───────────────────────
 function TiltCard({
   children,
   className,
@@ -26,12 +132,15 @@ function TiltCard({
   const rotX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), { stiffness: 300, damping: 30 });
   const rotY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), { stiffness: 300, damping: 30 });
 
-  const onMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    x.set((e.clientX - rect.left) / rect.width - 0.5);
-    y.set((e.clientY - rect.top) / rect.height - 0.5);
-  }, [x, y]);
+  const onMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!ref.current) return;
+      const rect = ref.current.getBoundingClientRect();
+      x.set((e.clientX - rect.left) / rect.width - 0.5);
+      y.set((e.clientY - rect.top) / rect.height - 0.5);
+    },
+    [x, y]
+  );
 
   const onLeave = useCallback(() => {
     x.set(0);
@@ -69,7 +178,6 @@ function AnimatedBeam() {
     const W = canvas.width;
     const H = canvas.height;
 
-    // Fixed node positions (relative to card)
     const src = { x: W * 0.12, y: H * 0.5 };
     const dst = { x: W * 0.88, y: H * 0.5 };
     const cp = { x: W * 0.5, y: H * 0.15 };
@@ -85,7 +193,6 @@ function AnimatedBeam() {
     const draw = () => {
       ctx.clearRect(0, 0, W, H);
 
-      // Track line
       ctx.beginPath();
       ctx.moveTo(src.x, src.y);
       ctx.quadraticCurveTo(cp.x, cp.y, dst.x, dst.y);
@@ -95,7 +202,6 @@ function AnimatedBeam() {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Pulse dot
       const pos = quadBez(t % 1);
       const grd = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, 16);
       grd.addColorStop(0, "rgba(139,92,246,0.9)");
@@ -122,7 +228,6 @@ function AnimatedBeam() {
   return (
     <div className="relative w-full h-28">
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-hidden="true" />
-      {/* Source node — WhatsApp */}
       <div className="absolute left-[8%] top-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -130,9 +235,10 @@ function AnimatedBeam() {
         >
           <MessageCircle className="w-5 h-5" style={{ color: "#25d366" }} />
         </div>
-        <span className="text-[9px] font-mono" style={{ color: "rgba(240,242,248,0.4)" }}>WhatsApp</span>
+        <span className="text-[9px] font-mono" style={{ color: "rgba(240,242,248,0.4)" }}>
+          WhatsApp
+        </span>
       </div>
-      {/* Destination node — Stripe */}
       <div className="absolute right-[8%] top-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center"
@@ -140,9 +246,10 @@ function AnimatedBeam() {
         >
           <CreditCard className="w-5 h-5" style={{ color: "#6366f1" }} />
         </div>
-        <span className="text-[9px] font-mono" style={{ color: "rgba(240,242,248,0.4)" }}>Stripe</span>
+        <span className="text-[9px] font-mono" style={{ color: "rgba(240,242,248,0.4)" }}>
+          Stripe
+        </span>
       </div>
-      {/* Success badge */}
       <motion.div
         className="absolute left-1/2 -translate-x-1/2 top-1 flex items-center gap-1 px-2.5 py-1 rounded-full"
         style={{ background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.25)" }}
@@ -150,7 +257,9 @@ function AnimatedBeam() {
         transition={{ duration: 2, repeat: Infinity }}
       >
         <CheckCircle2 className="w-3 h-3" style={{ color: "#22c55e" }} />
-        <span className="text-[9px] font-semibold font-mono" style={{ color: "#22c55e" }}>Payment confirmed</span>
+        <span className="text-[9px] font-semibold font-mono" style={{ color: "#22c55e" }}>
+          Payment confirmed
+        </span>
       </motion.div>
     </div>
   );
@@ -175,7 +284,7 @@ const BENTO = [
   {
     icon: Shield,
     title: "Secure by Design",
-    desc: "5-layer security: Auth · Zod · Scoping · Redis rate limit · Env safety.",
+    desc: "5-layer security: Auth, Zod, Scoping, Redis rate limit, Env safety.",
     span: "col-span-1",
     accent: "#a855f7",
   },
@@ -195,23 +304,10 @@ const BENTO = [
   },
 ];
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
-};
-
-const stagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.08 } },
-};
-
-// ── Main page ─────────────────────────────────────────────────────────────────
+// ── Main Landing Page ─────────────────────────────────────────────────────────
 export default function LandingPage() {
   return (
-    <main
-      className="relative flex flex-col overflow-hidden"
-      style={{ minHeight: "100dvh" }}
-    >
+    <main className="relative flex flex-col overflow-hidden" style={{ minHeight: "100dvh" }}>
       <BackgroundBeams />
 
       {/* ── Nav ── */}
@@ -255,18 +351,18 @@ export default function LandingPage() {
         </Link>
       </header>
 
-      {/* ── Immersive two-column preview ── */}
-      <div className="relative z-10 flex-1 grid grid-cols-1 lg:grid-cols-2 gap-0">
-
-        {/* Left — Orb + headline */}
-        <motion.div
-          className="flex flex-col items-center justify-center px-8 py-10 text-center"
-          variants={stagger}
-          initial="hidden"
-          animate="show"
-        >
-          {/* Badge */}
-          <motion.div variants={fadeUp}>
+      {/* ── Main Content with Splay Bento ── */}
+      <motion.div
+        className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 py-16"
+        variants={splayVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* ══════════════════════════════════════════════════════════════════════
+            CENTER HERO — Large Typographic Headline
+           ══════════════════════════════════════════════════════════════════════ */}
+        <motion.div variants={cardVariants} className="text-center mb-16 max-w-4xl">
+          <motion.div variants={fadeUp} initial="hidden" animate="show">
             <div
               className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 text-xs font-mono uppercase tracking-widest"
               style={{
@@ -279,41 +375,24 @@ export default function LandingPage() {
                 className="w-1.5 h-1.5 rounded-full"
                 style={{ background: "#8b5cf6", boxShadow: "0 0 8px #8b5cf6" }}
               />
-              Autonomous · Intelligent · 2030-ready
+              Autonomous Intelligence Layer
             </div>
           </motion.div>
 
-          {/* NexusCore orb — Amethyst Nebula */}
-          <motion.div variants={fadeUp} className="mb-6">
-            <NexusCore size={260} state="idle" />
-          </motion.div>
-
-          <motion.h1
-            variants={fadeUp}
-            className="text-balance text-3xl md:text-4xl lg:text-5xl font-bold leading-tight mb-4 max-w-lg"
+          <h1
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold font-sans leading-tight text-balance"
+            style={{ color: "#e8eaf6" }}
           >
-            Your Business&apos;s{" "}
-            <span
-              style={{
-                color: "#8b5cf6",
-                textShadow: "0 0 40px rgba(139,92,246,0.6)",
-              }}
-            >
-              Autonomous
-            </span>{" "}
-            Intelligence Layer
-          </motion.h1>
-
-          <motion.p
-            variants={fadeUp}
-            className="text-pretty text-base max-w-md mb-8 leading-relaxed"
-            style={{ color: "rgba(240,242,248,0.55)" }}
+            The Intelligent Orchestration Layer for Modern Business.
+          </h1>
+          <p
+            className="mt-6 text-sm md:text-base font-sans tracking-[0.15em] uppercase max-w-xl mx-auto"
+            style={{ color: "var(--color-muted)" }}
           >
-            Lumen NEX orchestrates revenue, tasks, and market signals with AI agents — so you
-            focus on building, not managing.
-          </motion.p>
+            Autonomous agents. Real-time insights. Effortless scale.
+          </p>
 
-          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-center gap-3">
+          <motion.div variants={fadeUp} initial="hidden" animate="show" className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-10">
             <Link
               href="/dashboard"
               className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all hover:scale-105 active:scale-95"
@@ -340,61 +419,53 @@ export default function LandingPage() {
           </motion.div>
         </motion.div>
 
-        {/* Right — Bento grid + animated beam */}
-        <motion.div
-          className="flex flex-col justify-center px-6 py-8 gap-4"
-          style={{ borderLeft: "1px solid rgba(255,255,255,0.05)" }}
-          variants={stagger}
-          initial="hidden"
-          animate="show"
-        >
+        {/* ══════════════════════════════════════════════════════════════════════
+            BENTO GRID with Splay + Magnetic Hover
+           ══════════════════════════════════════════════════════════════════════ */}
+        <div className="w-full max-w-5xl">
           {/* Animated beam card */}
-          <motion.div variants={fadeUp}>
-            <TiltCard>
-              <div
-                className="rounded-2xl overflow-hidden"
-                style={{
-                  background: "rgba(14,17,23,0.7)",
-                  border: "1px solid rgba(139,92,246,0.2)",
-                  backdropFilter: "blur(12px)",
-                }}
-              >
-                <div className="px-5 pt-4 pb-1">
-                  <p className="text-xs font-mono uppercase tracking-widest mb-0.5" style={{ color: "#8b5cf6" }}>
-                    Agent Workflow
-                  </p>
-                  <p className="text-sm font-semibold" style={{ color: "#f0f2f8" }}>
-                    WhatsApp lead → Stripe payment
-                  </p>
-                </div>
-                <AnimatedBeam />
-              </div>
-            </TiltCard>
-          </motion.div>
+          <MagneticCard className="mb-5 overflow-hidden" glowColor="amethyst">
+            <div className="px-5 pt-4 pb-1">
+              <p className="text-xs font-mono uppercase tracking-widest mb-0.5" style={{ color: "#8b5cf6" }}>
+                Agent Workflow
+              </p>
+              <p className="text-sm font-semibold" style={{ color: "#f0f2f8" }}>
+                WhatsApp lead → Stripe payment
+              </p>
+            </div>
+            <AnimatedBeam />
+          </MagneticCard>
 
-          {/* Bento grid */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* Bento features grid */}
+          <motion.div
+            className="grid grid-cols-3 gap-4"
+            variants={stagger}
+            initial="hidden"
+            animate="show"
+          >
             {BENTO.map((b) => {
               const Icon = b.icon;
               return (
                 <motion.div key={b.title} variants={fadeUp} className={b.span}>
                   <TiltCard className="h-full">
                     <div
-                      className="rounded-xl p-4 h-full flex flex-col gap-2"
+                      className="rounded-xl p-5 h-full flex flex-col gap-3"
                       style={{
-                        background: "rgba(14,17,23,0.7)",
+                        background: "rgba(255,255,255,0.02)",
                         border: `1px solid ${b.accent}22`,
-                        backdropFilter: "blur(12px)",
+                        backdropFilter: "blur(24px)",
                       }}
                     >
                       <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                        className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
                         style={{ background: `${b.accent}15`, border: `1px solid ${b.accent}28` }}
                       >
                         <Icon className="w-4 h-4" style={{ color: b.accent }} />
                       </div>
-                      <p className="text-xs font-semibold" style={{ color: "#f0f2f8" }}>{b.title}</p>
-                      <p className="text-[11px] leading-relaxed" style={{ color: "rgba(240,242,248,0.45)" }}>
+                      <p className="text-sm font-semibold" style={{ color: "#f0f2f8" }}>
+                        {b.title}
+                      </p>
+                      <p className="text-xs leading-relaxed" style={{ color: "rgba(240,242,248,0.45)" }}>
                         {b.desc}
                       </p>
                     </div>
@@ -402,9 +473,9 @@ export default function LandingPage() {
                 </motion.div>
               );
             })}
-          </div>
-        </motion.div>
-      </div>
+          </motion.div>
+        </div>
+      </motion.div>
 
       {/* ── Footer ── */}
       <footer
@@ -412,7 +483,7 @@ export default function LandingPage() {
         style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
       >
         <span className="text-[10px] font-mono" style={{ color: "rgba(240,242,248,0.2)" }}>
-          Lumen NEX © 2025
+          Lumen NEX 2025
         </span>
         <span className="text-[10px] font-mono" style={{ color: "rgba(240,242,248,0.2)" }}>
           Built with Next.js 16 · R3F · Vercel AI SDK 6

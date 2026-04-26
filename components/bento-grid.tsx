@@ -3,18 +3,19 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { NexusCore } from "./nexus-core";
 import { AgenticFeed } from "./agentic-feed";
 import { TransactionBeam } from "./transaction-beam";
 import { RevenueInsights } from "./revenue-insights";
 import { ActiveTasks } from "./active-tasks";
 
-// ── Splay Animation (cards stagger FROM center outwards) ──────────────────────
-const splayVariants = {
+// ── Stagger Animation ─────────────────────────────────────────────────────────
+const containerVariants = {
   hidden: {},
   visible: {
     transition: {
       staggerChildren: 0.1,
-      delayChildren: 0.15,
+      delayChildren: 0.1,
     },
   },
 };
@@ -22,15 +23,15 @@ const splayVariants = {
 const cardVariants = {
   hidden: {
     opacity: 0,
-    filter: "blur(10px)",
-    scale: 0.96,
+    filter: "blur(12px)",
+    y: 20,
   },
   visible: {
     opacity: 1,
     filter: "blur(0px)",
-    scale: 1,
+    y: 0,
     transition: {
-      duration: 0.6,
+      duration: 0.55,
       ease: [0.22, 1, 0.36, 1],
     },
   },
@@ -56,7 +57,6 @@ function BentoCard({ layoutId, className, children, glowColor = "none" }: BentoC
     const centerY = rect.top + rect.height / 2;
     const deltaX = (e.clientX - centerX) / (rect.width / 2);
     const deltaY = (e.clientY - centerY) / (rect.height / 2);
-    // Tilt towards cursor (max 4 degrees)
     setRotateY(deltaX * 4);
     setRotateX(-deltaY * 4);
   };
@@ -85,7 +85,7 @@ function BentoCard({ layoutId, className, children, glowColor = "none" }: BentoC
         transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`,
         transition: "transform 0.15s ease-out",
         willChange: "transform, opacity, filter",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(2,6,23,0.40)",
         backdropFilter: "blur(48px) saturate(180%)",
         WebkitBackdropFilter: "blur(48px) saturate(180%)",
         border: "1px solid rgba(255,255,255,0.08)",
@@ -102,72 +102,94 @@ function BentoCard({ layoutId, className, children, glowColor = "none" }: BentoC
 export function BentoGrid() {
   return (
     <motion.div
-      variants={splayVariants}
+      variants={containerVariants}
       initial="hidden"
       animate="visible"
       className="grid grid-cols-12 gap-5 w-full"
     >
       {/* ══════════════════════════════════════════════════════════════════════
-          CENTER HERO — Large Typographic Headline (col-span-12)
-         ══════════════════════════════════════════════════════════════════════ */}
-      <motion.div
-        variants={cardVariants}
-        className="col-span-12 flex flex-col items-center justify-center text-center py-16 md:py-24 px-6"
-      >
-        <h1
-          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold font-sans leading-tight text-balance max-w-4xl"
-          style={{ color: "#e8eaf6" }}
-        >
-          The Intelligent Orchestration Layer for Modern Business.
-        </h1>
-        <p
-          className="mt-6 text-sm md:text-base font-sans tracking-[0.2em] uppercase max-w-xl"
-          style={{ color: "var(--color-muted)" }}
-        >
-          Autonomous agents. Real-time insights. Effortless scale.
-        </p>
-      </motion.div>
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          TOP ROW — Metrics (2 symmetric cards, col-span-6 each)
+          LEFT COLUMN — Revenue + Tasks (col-span-4)
          ══════════════════════════════════════════════════════════════════════ */}
       <BentoCard
         layoutId="bento-revenue"
         glowColor="indigo"
-        className="col-span-12 md:col-span-6 min-h-[260px]"
+        className="col-span-12 md:col-span-4 min-h-[260px]"
       >
         <RevenueInsights />
       </BentoCard>
 
+      {/* ══════════════════════════════════════════════════════════════════════
+          CENTER — NexusCore Orb (col-span-4, row-span-2)
+         ══════════════════════════════════════════════════════════════════════ */}
       <BentoCard
-        layoutId="bento-tasks"
-        glowColor="none"
-        className="col-span-12 md:col-span-6 min-h-[260px]"
+        layoutId="bento-nexus"
+        glowColor="amethyst"
+        className="col-span-12 md:col-span-4 md:row-span-2 min-h-[280px] relative overflow-visible"
       >
-        <ActiveTasks />
+        <NexusCoreCard />
       </BentoCard>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          BOTTOM ROW — Action (Feed col-span-8, Beam col-span-4)
+          RIGHT COLUMN — Agentic Feed (col-span-4, row-span-2)
          ══════════════════════════════════════════════════════════════════════ */}
       <BentoCard
         layoutId="bento-feed"
         glowColor="indigo"
-        className="col-span-12 md:col-span-8 min-h-[320px]"
+        className="col-span-12 md:col-span-4 md:row-span-2 min-h-[540px]"
       >
         <div className="flex-1 flex flex-col p-5 overflow-hidden">
           <AgenticFeed className="h-full" />
         </div>
       </BentoCard>
 
+      {/* ══════════════════════════════════════════════════════════════════════
+          LEFT COLUMN BOTTOM — Active Tasks (col-span-4)
+         ══════════════════════════════════════════════════════════════════════ */}
+      <BentoCard
+        layoutId="bento-tasks"
+        glowColor="none"
+        className="col-span-12 md:col-span-4 min-h-[260px]"
+      >
+        <ActiveTasks />
+      </BentoCard>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          BOTTOM ROW — Transaction Beam (col-span-12)
+         ══════════════════════════════════════════════════════════════════════ */}
       <BentoCard
         layoutId="bento-beam"
         glowColor="amethyst"
-        className="col-span-12 md:col-span-4 min-h-[320px]"
+        className="col-span-12 min-h-[180px]"
       >
         <TransactionBeamCard />
       </BentoCard>
     </motion.div>
+  );
+}
+
+// ── NexusCore Card Inner ──────────────────────────────────────────────────────
+function NexusCoreCard() {
+  return (
+    <div className="relative flex-1 flex flex-col items-center justify-center min-h-[280px]">
+      {/* Radial glow backdrop */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 50%, rgba(168,85,247,0.12) 0%, rgba(99,102,241,0.06) 40%, transparent 70%)",
+        }}
+        aria-hidden="true"
+      />
+      <NexusCore size={220} state="idle" />
+      <div className="mt-4 text-center px-4">
+        <p className="text-xs font-mono font-semibold uppercase tracking-widest" style={{ color: "#a855f7" }}>
+          NexusCore
+        </p>
+        <p className="text-[11px] mt-1" style={{ color: "var(--color-muted)" }}>
+          Orchestrating 3 active agents
+        </p>
+      </div>
+    </div>
   );
 }
 

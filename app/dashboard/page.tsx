@@ -140,7 +140,7 @@ export default function DashboardPage() {
         </div>
       </motion.header>
 
-      {/* ── Bento Grid (with integrated hero) ── */}
+      {/* ── Bento Grid ── */}
       <main className="flex-1 px-6 py-8 md:py-12" role="main">
         <BentoGrid />
       </main>
