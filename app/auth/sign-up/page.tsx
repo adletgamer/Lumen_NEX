@@ -1,6 +1,6 @@
 "use client"
 
-import { createClient } from "@/lib/supabase/client"
+import { signUp } from "@/lib/auth"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -17,7 +17,6 @@ export default function SignUpPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
@@ -27,24 +26,19 @@ export default function SignUpPage() {
       return
     }
 
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo:
-            process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ??
-            `${window.location.origin}/auth/callback`,
-          data: {
-            display_name: displayName,
-          },
-        },
-      })
-      if (error) throw error
-      router.push("/auth/sign-up-success")
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "An error occurred")
-    } finally {
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters")
+      setIsLoading(false)
+      return
+    }
+
+    const result = await signUp(email, password, displayName || undefined)
+
+    if (result.success) {
+      router.push("/dashboard")
+      router.refresh()
+    } else {
+      setError(result.error || "An error occurred")
       setIsLoading(false)
     }
   }

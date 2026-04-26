@@ -1,18 +1,10 @@
-import { createClient } from "@/lib/supabase/server"
 import { NextRequest, NextResponse } from "next/server"
 
+// This callback route is no longer needed for Supabase OAuth.
+// With custom Neon auth (email/password), auth is handled directly
+// in Server Actions. This route simply redirects to dashboard.
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl
-  const code = searchParams.get("code")
   const next = searchParams.get("next") ?? "/dashboard"
-
-  if (code) {
-    const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
-    }
-  }
-
-  return NextResponse.redirect(`${origin}/auth/error`)
+  return NextResponse.redirect(`${origin}${next}`)
 }
