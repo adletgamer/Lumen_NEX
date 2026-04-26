@@ -20,6 +20,8 @@ export type Profile = {
   display_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  business_name: string | null;
+  phone_number: string | null;
 };
 
 // ── Session Management ────────────────────────────────────────────────────────
@@ -78,7 +80,7 @@ export async function getCurrentUser(): Promise<(User & { profile: Profile | nul
   if (users.length === 0) return null;
 
   const profiles = await sql`
-    SELECT id, user_id, display_name, avatar_url, bio FROM profiles WHERE user_id = ${session.user_id}
+    SELECT id, user_id, display_name, avatar_url, bio, business_name, phone_number FROM profiles WHERE user_id = ${session.user_id}
   `;
 
   return {
@@ -177,7 +179,7 @@ export async function signOut() {
 // ── Update Profile ────────────────────────────────────────────────────────────
 export async function updateProfile(
   userId: string,
-  data: { display_name?: string; bio?: string }
+  data: { display_name?: string; bio?: string; business_name?: string; phone_number?: string }
 ): Promise<{ success: boolean; error?: string }> {
   try {
     await sql`
@@ -185,6 +187,8 @@ export async function updateProfile(
       SET 
         display_name = COALESCE(${data.display_name ?? null}, display_name),
         bio = COALESCE(${data.bio ?? null}, bio),
+        business_name = COALESCE(${data.business_name ?? null}, business_name),
+        phone_number = COALESCE(${data.phone_number ?? null}, phone_number),
         updated_at = NOW()
       WHERE user_id = ${userId}
     `;

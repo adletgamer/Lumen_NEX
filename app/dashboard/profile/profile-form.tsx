@@ -9,13 +9,15 @@ import type { User as UserType, Profile } from "@/lib/auth"
 interface ProfileFormProps {
   user: UserType
   profile: Profile | null
-  updateProfileAction: (userId: string, data: { display_name?: string; bio?: string }) => Promise<{ success: boolean; error?: string }>
+  updateProfileAction: (userId: string, data: { display_name?: string; bio?: string; business_name?: string; phone_number?: string }) => Promise<{ success: boolean; error?: string }>
   signOutAction: () => Promise<void>
 }
 
 export default function ProfileForm({ user, profile, updateProfileAction, signOutAction }: ProfileFormProps) {
   const [displayName, setDisplayName] = useState(profile?.display_name || "")
   const [bio, setBio] = useState(profile?.bio || "")
+  const [businessName, setBusinessName] = useState(profile?.business_name || "")
+  const [phoneNumber, setPhoneNumber] = useState(profile?.phone_number || "")
   const [isSaving, setIsSaving] = useState(false)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
   const router = useRouter()
@@ -27,6 +29,8 @@ export default function ProfileForm({ user, profile, updateProfileAction, signOu
     const result = await updateProfileAction(user.id, {
       display_name: displayName || undefined,
       bio: bio || undefined,
+      business_name: businessName || undefined,
+      phone_number: phoneNumber || undefined,
     })
 
     if (result.success) {
@@ -86,6 +90,44 @@ export default function ProfileForm({ user, profile, updateProfileAction, signOu
                   placeholder="Your name"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all focus:ring-2"
+                  style={{
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    color: "#e8eaf6",
+                  }}
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label htmlFor="businessName" className="text-xs font-mono uppercase tracking-wider" style={{ color: "#9ca3af" }}>
+                  Business Name
+                </label>
+                <input
+                  id="businessName"
+                  type="text"
+                  placeholder="Your company name"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all focus:ring-2"
+                  style={{
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    color: "#e8eaf6",
+                  }}
+                />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label htmlFor="phoneNumber" className="text-xs font-mono uppercase tracking-wider" style={{ color: "#9ca3af" }}>
+                  Phone Number
+                </label>
+                <input
+                  id="phoneNumber"
+                  type="tel"
+                  placeholder="+1 234 567 890"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all focus:ring-2"
                   style={{
                     background: "rgba(255,255,255,0.03)",
