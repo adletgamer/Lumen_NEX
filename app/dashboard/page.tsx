@@ -2,131 +2,177 @@
 
 import { motion } from "framer-motion";
 import { BentoGrid } from "@/components/bento-grid";
-import { AgenticFeed } from "@/components/agentic-feed";
-import { Bell, Search } from "lucide-react";
+import { Bell, Search, Cpu, Layers3 } from "lucide-react";
 
 export default function DashboardPage() {
   return (
-    <div className="flex flex-col lg:flex-row h-full min-h-screen">
-      {/* Left: Main content */}
-      <div className="flex-1 flex flex-col min-w-0 p-5 md:p-6 gap-6">
-        {/* Top bar */}
-        <header className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-bold text-balance" style={{ color: "var(--color-foreground)" }}>
-              Command Center
-            </h1>
-            <p className="text-sm" style={{ color: "var(--color-muted-foreground)" }}>
-              Your autonomous business overview
-            </p>
+    <div className="flex flex-col min-h-screen">
+      {/* ── Sticky Glassmorphism Nav ── */}
+      <motion.header
+        initial={{ opacity: 0, y: -16, filter: "blur(8px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        transition={{ duration: 0.45, ease: [0.21, 0.47, 0.32, 0.98] }}
+        className="sticky top-0 z-50 flex items-center gap-4 px-6 h-16"
+        style={{
+          background: "rgba(2, 6, 23, 0.72)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.07)",
+          boxShadow: "0 1px 0 rgba(99,102,241,0.08)",
+        }}
+      >
+        {/* Logo mark */}
+        <div className="flex items-center gap-2.5 mr-2">
+          <div
+            className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{
+              background: "linear-gradient(135deg, rgba(99,102,241,0.3) 0%, rgba(168,85,247,0.3) 100%)",
+              border: "1px solid rgba(168,85,247,0.3)",
+              boxShadow: "0 0 16px rgba(99,102,241,0.25)",
+            }}
+          >
+            <Layers3 className="w-4 h-4" style={{ color: "#a855f7" }} />
           </div>
-          <div className="flex items-center gap-2">
-            {/* Search */}
-            <div
-              className="hidden sm:flex items-center gap-2 glass rounded-xl px-3 py-2"
-              style={{ border: "1px solid var(--color-border)" }}
-            >
-              <Search className="w-3.5 h-3.5" style={{ color: "var(--color-muted)" }} />
-              <input
-                type="search"
-                placeholder="Ask the agent..."
-                className="bg-transparent text-sm outline-none w-40 placeholder:text-[var(--color-muted)]"
-                style={{ color: "var(--color-foreground)" }}
-                aria-label="Search or ask the AI agent"
-              />
-              <kbd
-                className="text-[10px] font-mono px-1.5 py-0.5 rounded"
-                style={{ background: "var(--color-surface)", color: "var(--color-muted)" }}
-              >
-                ⌘K
-              </kbd>
-            </div>
-            {/* Notifications */}
-            <button
-              className="relative w-9 h-9 glass rounded-xl flex items-center justify-center"
-              style={{ border: "1px solid var(--color-border)" }}
-              aria-label="Notifications"
-            >
-              <Bell className="w-4 h-4" style={{ color: "var(--color-muted-foreground)" }} />
-              <span
-                className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
-                style={{ background: "#ef4444", boxShadow: "0 0 6px rgba(239,68,68,0.6)" }}
-                aria-label="3 unread notifications"
-              />
-            </button>
-            {/* Avatar */}
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold flex-shrink-0"
-              style={{ background: "rgba(99,102,241,0.15)", color: "#8b5cf6", border: "1px solid rgba(99,102,241,0.3)" }}
-              role="img"
-              aria-label="User avatar"
-            >
-              LN
-            </div>
-          </div>
-        </header>
+          <span className="hidden sm:block text-sm font-bold tracking-tight text-balance" style={{ color: "#e8eaf6" }}>
+            Lumen NEX
+          </span>
+        </div>
 
-        {/* NexusCore status bar */}
-        <div
-          className="glass-bright rounded-2xl px-5 py-4 flex items-center gap-5"
-          style={{ border: "1px solid rgba(99,102,241,0.2)" }}
-        >
-          {/* Lightweight pulsing orb — avoids mounting a full WebGL canvas in a small slot */}
-          <div className="relative flex-shrink-0 w-12 h-12 flex items-center justify-center" aria-hidden="true">
+        {/* Page breadcrumb */}
+        <div className="hidden md:flex items-center gap-1.5">
+          <span className="text-xs font-mono" style={{ color: "var(--color-muted)" }}>
+            dashboard
+          </span>
+          <span className="text-xs" style={{ color: "rgba(255,255,255,0.15)" }}>/</span>
+          <span className="text-xs font-mono font-medium" style={{ color: "#818cf8" }}>
+            command-center
+          </span>
+        </div>
+
+        {/* ── Status Chip ── */}
+        <div className="hidden lg:flex items-center gap-2 ml-2">
+          <div
+            className="flex items-center gap-2 rounded-full px-3 py-1.5"
+            style={{
+              background: "rgba(99,102,241,0.08)",
+              border: "1px solid rgba(99,102,241,0.18)",
+            }}
+          >
             <motion.div
-              className="absolute inset-0 rounded-full"
-              style={{ background: "rgba(99,102,241,0.12)" }}
-              animate={{ scale: [1, 1.35, 1], opacity: [0.6, 0.15, 0.6] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ background: "#6366f1" }}
+              animate={{ opacity: [1, 0.3, 1], scale: [1, 1.4, 1] }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
             />
-            <div
-              className="w-6 h-6 rounded-full"
-              style={{
-                background: "radial-gradient(circle at 35% 35%, #8b5cf6, rgba(99,102,241,0.4))",
-                boxShadow: "0 0 16px rgba(99,102,241,0.6)",
-              }}
-            />
-          </div>
-          <div>
-            <p
-              className="text-xs font-mono uppercase tracking-widest mb-0.5"
-              style={{ color: "#8b5cf6" }}
-            >
-              Nexus Core — Idle
-            </p>
-            <p className="text-sm font-medium" style={{ color: "var(--color-foreground)" }}>
-              All systems nominal · 3 agents active
-            </p>
-          </div>
-          <div className="ml-auto hidden sm:flex items-center gap-4">
-            {[
-              { label: "Uptime", value: "99.98%" },
-              { label: "Latency", value: "42ms" },
-              { label: "Ops/min", value: "1,284" },
-            ].map((s) => (
-              <div key={s.label} className="text-center">
-                <p className="text-xs font-bold" style={{ color: "var(--color-foreground)" }}>
-                  {s.value}
-                </p>
-                <p className="text-[10px]" style={{ color: "var(--color-muted)" }}>
-                  {s.label}
-                </p>
-              </div>
-            ))}
+            <span className="text-[11px] font-mono" style={{ color: "#818cf8" }}>
+              3 agents active
+            </span>
           </div>
         </div>
 
-        {/* Bento Grid */}
-        <BentoGrid />
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* ── Search ── */}
+        <div
+          className="hidden sm:flex items-center gap-2 rounded-xl px-3 py-2"
+          style={{
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            minWidth: "180px",
+          }}
+        >
+          <Search className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "var(--color-muted)" }} />
+          <input
+            type="search"
+            placeholder="Ask the agent..."
+            className="bg-transparent text-xs outline-none w-full font-sans"
+            style={{
+              color: "var(--color-foreground)",
+              caretColor: "#6366f1",
+            }}
+            aria-label="Search or ask the AI agent"
+          />
+          <kbd
+            className="hidden md:block text-[10px] font-mono px-1.5 py-0.5 rounded flex-shrink-0"
+            style={{
+              background: "rgba(255,255,255,0.05)",
+              color: "var(--color-muted)",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}
+          >
+            ⌘K
+          </kbd>
+        </div>
+
+        {/* ── Notifications ── */}
+        <motion.button
+          whileTap={{ scale: 0.92 }}
+          className="relative w-9 h-9 rounded-xl flex items-center justify-center"
+          style={{
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.07)",
+          }}
+          aria-label="Notifications — 3 unread"
+        >
+          <Bell className="w-4 h-4" style={{ color: "var(--color-muted-foreground)" }} />
+          <span
+            className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full"
+            style={{
+              background: "#ef4444",
+              boxShadow: "0 0 6px rgba(239,68,68,0.7)",
+            }}
+            aria-hidden="true"
+          />
+        </motion.button>
+
+        {/* ── Avatar ── */}
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-[11px] font-bold font-mono flex-shrink-0"
+          style={{
+            background: "linear-gradient(135deg, rgba(99,102,241,0.25) 0%, rgba(168,85,247,0.25) 100%)",
+            border: "1px solid rgba(168,85,247,0.3)",
+            color: "#c4b5fd",
+          }}
+          role="img"
+          aria-label="User avatar"
+        >
+          LN
+        </div>
+      </motion.header>
+
+      {/* ── Page Title ── */}
+      <div className="px-6 pt-6 pb-4">
+        <motion.div
+          initial={{ opacity: 0, filter: "blur(12px)", y: 20 }}
+          animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+          transition={{ duration: 0.55, delay: 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
+          className="flex items-center gap-3"
+        >
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{
+              background: "rgba(99,102,241,0.12)",
+              border: "1px solid rgba(99,102,241,0.2)",
+            }}
+          >
+            <Cpu className="w-4.5 h-4.5" style={{ color: "#6366f1" }} />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold font-sans text-balance" style={{ color: "#e8eaf6" }}>
+              Command Center
+            </h1>
+            <p className="text-xs font-mono" style={{ color: "var(--color-muted)" }}>
+              Autonomous business overview — live
+            </p>
+          </div>
+        </motion.div>
       </div>
 
-      {/* Right: Agentic Feed */}
-      <aside
-        className="hidden lg:flex flex-col w-80 xl:w-96 flex-shrink-0 p-5 h-screen sticky top-0 overflow-y-auto"
-        style={{ borderLeft: "1px solid var(--color-border)" }}
-      >
-        <AgenticFeed className="h-full" />
-      </aside>
+      {/* ── Bento Grid ── */}
+      <main className="flex-1 px-6 pb-8" role="main">
+        <BentoGrid />
+      </main>
     </div>
   );
 }

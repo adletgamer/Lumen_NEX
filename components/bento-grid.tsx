@@ -1,230 +1,242 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { TrendingUp, CheckSquare, Radio, Users, DollarSign, ArrowUpRight } from "lucide-react";
-import { cn, formatCurrency, formatCompact } from "@/lib/utils";
-import { GenerativeSlot } from "./generative-slot";
+import { cn } from "@/lib/utils";
+import { NexusCore } from "./nexus-core";
+import { AgenticFeed } from "./agentic-feed";
 import { TransactionBeam } from "./transaction-beam";
+import { RevenueInsights } from "./revenue-insights";
+import { ActiveTasks } from "./active-tasks";
 
+// ── Animation Orchestration ───────────────────────────────────────────────────
+const gridVariants = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: {
+    opacity: 0,
+    filter: "blur(12px)",
+    y: 20,
+  },
+  visible: {
+    opacity: 1,
+    filter: "blur(0px)",
+    y: 0,
+    transition: {
+      duration: 0.55,
+      ease: [0.21, 0.47, 0.32, 0.98],
+    },
+  },
+};
+
+// ── Bento Card Shell ──────────────────────────────────────────────────────────
 interface BentoCardProps {
+  layoutId: string;
   className?: string;
   children: React.ReactNode;
-  glowColor?: "teal" | "indigo" | "amber" | "none";
+  glowColor?: "indigo" | "amethyst" | "none";
 }
 
-function BentoCard({ className, children, glowColor = "none" }: BentoCardProps) {
-  const glowMap = {
-    teal: "rgba(0,212,170,0.1)",
-    indigo: "rgba(99,102,241,0.1)",
-    amber: "rgba(245,158,11,0.1)",
-    none: "transparent",
-  };
+function BentoCard({ layoutId, className, children, glowColor = "none" }: BentoCardProps) {
+  const glowStyle =
+    glowColor === "indigo"
+      ? { boxShadow: "0 0 0 1px rgba(99,102,241,0.15), 0 8px 40px rgba(99,102,241,0.10)" }
+      : glowColor === "amethyst"
+      ? { boxShadow: "0 0 0 1px rgba(168,85,247,0.15), 0 8px 40px rgba(168,85,247,0.10)" }
+      : { boxShadow: "0 8px 32px rgba(0,0,0,0.35)" };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ rotateX: -2, rotateY: 3, scale: 1.015, transition: { duration: 0.2 } }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      style={{
-        perspective: 900,
-        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(255,255,255,0.08), 0 4px 32px ${glowMap[glowColor]}`,
+      layoutId={layoutId}
+      variants={cardVariants}
+      whileHover={{
+        scale: 1.012,
+        transition: { duration: 0.18, ease: "easeOut" },
       }}
-      className={cn("glass-bright rounded-2xl overflow-hidden flex flex-col", className)}
+      style={{
+        ...glowStyle,
+        willChange: "transform, opacity, filter",
+      }}
+      className={cn(
+        "bento-card flex flex-col",
+        className
+      )}
     >
       {children}
     </motion.div>
   );
 }
 
-const TASK_DATA = [
-  { id: 1, label: "Draft Q2 investor update", done: true, priority: "high" },
-  { id: 2, label: "Review Stripe payout schedule", done: false, priority: "high" },
-  { id: 3, label: "Respond to 3 pending leads", done: false, priority: "medium" },
-  { id: 4, label: "Publish product changelog", done: true, priority: "low" },
-  { id: 5, label: "Optimize checkout funnel", done: false, priority: "medium" },
-];
+// ── Card Header ───────────────────────────────────────────────────────────────
+function CardHeader({
+  icon,
+  label,
+  accent = "#6366f1",
+  badge,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  accent?: string;
+  badge?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2.5 px-5 pt-5 pb-3">
+      <div
+        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+        style={{ background: `${accent}1a`, border: `1px solid ${accent}30` }}
+      >
+        {icon}
+      </div>
+      <span className="text-xs font-semibold uppercase tracking-widest font-mono" style={{ color: accent }}>
+        {label}
+      </span>
+      {badge && <div className="ml-auto">{badge}</div>}
+    </div>
+  );
+}
 
-const SIGNAL_DATA = [
-  { label: "Black Friday", relevance: 94, trend: "up" },
-  { label: "Competitor pricing", relevance: 82, trend: "up" },
-  { label: "SaaS churn spike", relevance: 71, trend: "down" },
-  { label: "AI tooling interest", relevance: 88, trend: "up" },
-];
-
-const priorityColor: Record<string, string> = {
-  high: "#ef4444",
-  medium: "#f59e0b",
-  low: "#6b7280",
-};
-
+// ── Main Export ───────────────────────────────────────────────────────────────
 export function BentoGrid() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 w-full">
-
-      {/* Revenue Insights — generative slot */}
-      <BentoCard className="xl:col-span-2 p-0" glowColor="teal">
-        <div className="p-4 pb-0 flex items-center gap-2">
-          <DollarSign className="w-4 h-4" style={{ color: "#00d4aa" }} />
-          <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-muted-foreground)" }}>
-            Revenue Insights
-          </span>
-        </div>
-        <GenerativeSlot
-          className="flex-1"
-          label="stream:revenue_chart"
-          loadingDelay={1800}
-        />
+    <motion.div
+      variants={gridVariants}
+      initial="hidden"
+      animate="visible"
+      className="grid grid-cols-12 gap-4 w-full"
+      style={{ gridAutoRows: "minmax(0, 1fr)" }}
+    >
+      {/* ── Revenue Insights (left col, row 1) ── */}
+      <BentoCard
+        layoutId="bento-revenue"
+        glowColor="indigo"
+        className="col-span-12 md:col-span-4 min-h-[220px]"
+      >
+        <RevenueInsights />
       </BentoCard>
 
-      {/* KPI Stack */}
-      <BentoCard className="p-4 gap-3" glowColor="indigo">
-        <div className="flex items-center gap-2 mb-1">
-          <TrendingUp className="w-4 h-4" style={{ color: "#6366f1" }} />
-          <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-muted-foreground)" }}>
-            Key Metrics
-          </span>
+      {/* ── NexusCore Centerpiece (center, rows 1-2) ── */}
+      <BentoCard
+        layoutId="bento-nexus"
+        glowColor="amethyst"
+        className="col-span-12 md:col-span-4 md:row-span-2 min-h-[280px] relative overflow-visible"
+      >
+        <NexusCoreCard />
+      </BentoCard>
+
+      {/* ── Agentic Feed (right col, rows 1-2) ── */}
+      <BentoCard
+        layoutId="bento-feed"
+        glowColor="indigo"
+        className="col-span-12 md:col-span-4 md:row-span-2 min-h-[280px]"
+      >
+        <div className="flex-1 flex flex-col p-5 overflow-hidden">
+          <AgenticFeed className="h-full" />
         </div>
+      </BentoCard>
+
+      {/* ── Active Tasks (left col, row 2) ── */}
+      <BentoCard
+        layoutId="bento-tasks"
+        glowColor="none"
+        className="col-span-12 md:col-span-4 min-h-[200px]"
+      >
+        <ActiveTasks />
+      </BentoCard>
+
+      {/* ── Transaction Beam (full width, row 3) ── */}
+      <BentoCard
+        layoutId="bento-beam"
+        glowColor="indigo"
+        className="col-span-12 min-h-[160px]"
+      >
+        <TransactionBeamCard />
+      </BentoCard>
+    </motion.div>
+  );
+}
+
+// ── NexusCore Card Inner ──────────────────────────────────────────────────────
+function NexusCoreCard() {
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center p-4 relative">
+      {/* Label */}
+      <div className="absolute top-5 left-5 right-5 flex items-center justify-between">
+        <span className="text-xs font-mono font-semibold uppercase tracking-widest" style={{ color: "#a855f7" }}>
+          NexusCore
+        </span>
+        <LiveBadge color="#a855f7" label="Active" />
+      </div>
+
+      {/* Orb */}
+      <NexusCore size={240} />
+
+      {/* Stats row */}
+      <div
+        className="w-full mt-2 grid grid-cols-3 gap-2 px-2"
+        style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "12px" }}
+      >
         {[
-          { label: "MRR", value: formatCurrency(11200), delta: "+14.2%", up: true },
-          { label: "Active Users", value: formatCompact(2841), delta: "+6.8%", up: true },
-          { label: "Churn Rate", value: "2.1%", delta: "-0.4%", up: false },
-        ].map((m) => (
-          <div
-            key={m.label}
-            className="flex items-center justify-between rounded-xl px-3 py-2.5"
-            style={{ background: "var(--color-surface)" }}
-          >
-            <span className="text-xs" style={{ color: "var(--color-muted-foreground)" }}>
-              {m.label}
-            </span>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-bold" style={{ color: "var(--color-foreground)" }}>
-                {m.value}
-              </span>
-              <span
-                className="text-xs font-mono"
-                style={{ color: m.up ? "#10b981" : "#ef4444" }}
-              >
-                {m.delta}
-              </span>
-            </div>
+          { label: "Ops/min", value: "1,284" },
+          { label: "Latency", value: "42ms" },
+          { label: "Uptime", value: "99.9%" },
+        ].map((s) => (
+          <div key={s.label} className="text-center">
+            <p className="text-sm font-bold font-mono" style={{ color: "#e8eaf6" }}>
+              {s.value}
+            </p>
+            <p className="text-[10px] font-mono uppercase tracking-wider mt-0.5" style={{ color: "var(--color-muted)" }}>
+              {s.label}
+            </p>
           </div>
         ))}
-      </BentoCard>
+      </div>
+    </div>
+  );
+}
 
-      {/* Active Tasks */}
-      <BentoCard className="p-4" glowColor="none">
-        <div className="flex items-center gap-2 mb-3">
-          <CheckSquare className="w-4 h-4" style={{ color: "#00d4aa" }} />
-          <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-muted-foreground)" }}>
-            Active Tasks
-          </span>
-          <span
-            className="ml-auto text-xs rounded-full px-2 py-0.5"
-            style={{ background: "var(--color-teal-dim)", color: "#00d4aa" }}
-          >
-            {TASK_DATA.filter((t) => !t.done).length} open
-          </span>
-        </div>
-        <div className="space-y-2">
-          {TASK_DATA.map((task) => (
-            <div key={task.id} className="flex items-center gap-2.5 group">
-              <div
-                className={cn(
-                  "w-4 h-4 rounded flex-shrink-0 flex items-center justify-center border transition-colors",
-                  task.done
-                    ? "border-[#00d4aa] bg-[rgba(0,212,170,0.15)]"
-                    : "border-[rgba(255,255,255,0.12)]"
-                )}
-              >
-                {task.done && (
-                  <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
-                    <path d="M1 3L3 5L7 1" stroke="#00d4aa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-              </div>
-              <span
-                className={cn("text-xs flex-1 truncate", task.done && "line-through")}
-                style={{ color: task.done ? "var(--color-muted)" : "var(--color-foreground)" }}
-              >
-                {task.label}
-              </span>
-              <div
-                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                style={{ background: priorityColor[task.priority] }}
-              />
-            </div>
-          ))}
-        </div>
-      </BentoCard>
+// ── Transaction Beam Card Inner ───────────────────────────────────────────────
+function TransactionBeamCard() {
+  return (
+    <div className="flex-1 flex flex-col">
+      <CardHeader
+        icon={
+          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="#6366f1" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+          </svg>
+        }
+        label="Transaction Beam"
+        accent="#6366f1"
+        badge={<LiveBadge color="#6366f1" label="Real-time" />}
+      />
+      <div className="flex-1 px-4 pb-4">
+        <TransactionBeam className="h-full" />
+      </div>
+    </div>
+  );
+}
 
-      {/* Market Signals */}
-      <BentoCard className="p-4" glowColor="amber">
-        <div className="flex items-center gap-2 mb-3">
-          <Radio className="w-4 h-4" style={{ color: "#f59e0b" }} />
-          <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-muted-foreground)" }}>
-            Market Signals
-          </span>
-        </div>
-        <div className="space-y-3">
-          {SIGNAL_DATA.map((s) => (
-            <div key={s.label}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs" style={{ color: "var(--color-foreground)" }}>
-                  {s.label}
-                </span>
-                <div className="flex items-center gap-1">
-                  <ArrowUpRight
-                    className="w-3 h-3"
-                    style={{
-                      color: s.trend === "up" ? "#10b981" : "#ef4444",
-                      transform: s.trend === "down" ? "rotate(90deg)" : undefined,
-                    }}
-                  />
-                  <span
-                    className="text-xs font-mono"
-                    style={{ color: s.trend === "up" ? "#10b981" : "#ef4444" }}
-                  >
-                    {s.relevance}%
-                  </span>
-                </div>
-              </div>
-              <div
-                className="h-1.5 rounded-full overflow-hidden"
-                style={{ background: "var(--color-surface)" }}
-              >
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${s.relevance}%` }}
-                  transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-                  className="h-full rounded-full"
-                  style={{ background: `linear-gradient(90deg, #f59e0b, #fbbf24)` }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      </BentoCard>
-
-      {/* Transaction Beam */}
-      <BentoCard className="p-4" glowColor="teal">
-        <div className="flex items-center gap-2 mb-1">
-          <Users className="w-4 h-4" style={{ color: "#00d4aa" }} />
-          <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--color-muted-foreground)" }}>
-            Live Transactions
-          </span>
-          <motion.span
-            className="ml-auto text-[10px] font-mono uppercase tracking-wider rounded-full px-2 py-0.5"
-            style={{ background: "rgba(0,212,170,0.1)", color: "#00d4aa" }}
-            animate={{ opacity: [1, 0.4, 1] }}
-            transition={{ duration: 1.2, repeat: Infinity }}
-          >
-            Real-time
-          </motion.span>
-        </div>
-        <TransactionBeam className="flex-1" />
-      </BentoCard>
+// ── Shared: Live Badge ────────────────────────────────────────────────────────
+function LiveBadge({ color, label }: { color: string; label: string }) {
+  return (
+    <div
+      className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
+      style={{ background: `${color}15`, border: `1px solid ${color}25` }}
+    >
+      <motion.div
+        className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+        style={{ background: color }}
+        animate={{ opacity: [1, 0.3, 1] }}
+        transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <span className="text-[10px] font-mono uppercase tracking-wider" style={{ color }}>
+        {label}
+      </span>
     </div>
   );
 }

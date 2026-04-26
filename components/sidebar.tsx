@@ -41,9 +41,9 @@ export function Sidebar() {
       >
         <div
           className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-          style={{ background: "rgba(0,212,170,0.15)", border: "1px solid rgba(0,212,170,0.35)" }}
+          style={{ background: "rgba(99,102,241,0.15)", border: "1px solid rgba(168,85,247,0.35)" }}
         >
-          <Zap className="w-4 h-4" style={{ color: "#00d4aa" }} />
+          <Zap className="w-4 h-4" style={{ color: "#a855f7" }} />
         </div>
         <AnimatePresence>
           {!collapsed && (
@@ -73,14 +73,14 @@ export function Sidebar() {
               className={cn(
                 "relative flex items-center gap-3 px-2 py-2.5 rounded-xl transition-colors",
                 active
-                  ? "text-[#00d4aa]"
+                  ? "text-[#818cf8]"
                   : "text-[var(--color-muted-foreground)] hover:text-[var(--color-foreground)]"
               )}
               style={
                 active
                   ? {
-                      background: "rgba(0,212,170,0.1)",
-                      boxShadow: "inset 0 0 0 1px rgba(0,212,170,0.2)",
+                      background: "rgba(99,102,241,0.1)",
+                      boxShadow: "inset 0 0 0 1px rgba(99,102,241,0.2)",
                     }
                   : {}
               }
@@ -90,7 +90,7 @@ export function Sidebar() {
                 <motion.div
                   layoutId="nav-indicator"
                   className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full"
-                  style={{ background: "#00d4aa" }}
+                  style={{ background: "#6366f1" }}
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}
