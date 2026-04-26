@@ -48,26 +48,7 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        {/* ── Status Chip ── */}
-        <div className="hidden lg:flex items-center gap-2 ml-2">
-          <div
-            className="flex items-center gap-2 rounded-full px-3 py-1.5"
-            style={{
-              background: "rgba(99,102,241,0.06)",
-              border: "1px solid rgba(99,102,241,0.15)",
-            }}
-          >
-            <motion.div
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ background: "#6366f1" }}
-              animate={{ opacity: [1, 0.3, 1], scale: [1, 1.4, 1] }}
-              transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <span className="text-[11px] font-mono" style={{ color: "#818cf8" }}>
-              3 agents active
-            </span>
-          </div>
-        </div>
+
 
         {/* Spacer */}
         <div className="flex-1" />

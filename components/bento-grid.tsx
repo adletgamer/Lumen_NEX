@@ -3,7 +3,6 @@
 import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { NexusCore } from "./nexus-core";
 import { AgenticFeed } from "./agentic-feed";
 import { TransactionBeam } from "./transaction-beam";
 import { RevenueInsights } from "./revenue-insights";
@@ -108,26 +107,41 @@ export function BentoGrid() {
       className="grid grid-cols-12 gap-5 w-full"
     >
       {/* ══════════════════════════════════════════════════════════════════════
-          LEFT COLUMN — Revenue + Tasks (col-span-4)
+          LEFT — Revenue Insights (col-span-6)
          ══════════════════════════════════════════════════════════════════════ */}
       <BentoCard
         layoutId="bento-revenue"
         glowColor="indigo"
-        className="col-span-12 md:col-span-4 min-h-[260px]"
+        className="col-span-12 md:col-span-6 min-h-[280px]"
       >
         <RevenueInsights />
       </BentoCard>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          CENTER — NexusCore Orb (col-span-4, row-span-2)
+          RIGHT — Agentic Feed (col-span-6)
          ══════════════════════════════════════════════════════════════════════ */}
       <BentoCard
-        layoutId="bento-nexus"
-        glowColor="amethyst"
-        className="col-span-12 md:col-span-4 md:row-span-2 min-h-[280px] relative overflow-visible"
+        layoutId="bento-feed"
+        glowColor="indigo"
+        className="col-span-12 md:col-span-6 min-h-[280px]"
       >
-        <NexusCoreCard />
+        <div className="flex-1 flex flex-col p-5 overflow-hidden">
+          <AgenticFeed className="h-full" />
+        </div>
       </BentoCard>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          BOTTOM LEFT — Active Tasks (col-span-6)
+         ══════════════════════════════════════════════════════════════════════ */}
+      <BentoCard
+        layoutId="bento-tasks"
+        glowColor="none"
+        className="col-span-12 md:col-span-6 min-h-[260px]"
+      >
+        <ActiveTasks />
+      </BentoCard>
+
+
 
       {/* ══════════════════════════════════════════════════════════════════════
           RIGHT COLUMN — Agentic Feed (col-span-4, row-span-2)
@@ -167,31 +181,7 @@ export function BentoGrid() {
   );
 }
 
-// ── NexusCore Card Inner ──────────────────────────────────────────────────────
-function NexusCoreCard() {
-  return (
-    <div className="relative flex-1 flex flex-col items-center justify-center min-h-[280px]">
-      {/* Radial glow backdrop */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(circle at 50% 50%, rgba(168,85,247,0.12) 0%, rgba(99,102,241,0.06) 40%, transparent 70%)",
-        }}
-        aria-hidden="true"
-      />
-      <NexusCore size={220} state="idle" />
-      <div className="mt-4 text-center px-4">
-        <p className="text-xs font-mono font-semibold uppercase tracking-widest" style={{ color: "#a855f7" }}>
-          NexusCore
-        </p>
-        <p className="text-[11px] mt-1" style={{ color: "var(--color-muted)" }}>
-          Orchestrating 3 active agents
-        </p>
-      </div>
-    </div>
-  );
-}
+
 
 // ── Transaction Beam Card Inner ───────────────────────────────────────────────
 function TransactionBeamCard() {
