@@ -10,7 +10,7 @@ interface ProfileFormProps {
   user: UserType
   profile: Profile | null
   updateProfileAction: (userId: string, data: { display_name?: string; bio?: string }) => Promise<{ success: boolean; error?: string }>
-  signOutAction: () => Promise<never>
+  signOutAction: () => Promise<void>
 }
 
 export default function ProfileForm({ user, profile, updateProfileAction, signOutAction }: ProfileFormProps) {
