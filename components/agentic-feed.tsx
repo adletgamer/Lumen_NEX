@@ -14,16 +14,14 @@ interface Thought {
 }
 
 const THOUGHT_TEMPLATES: Omit<Thought, "id" | "timestamp">[] = [
-  { type: "reasoning", signature: "market_analysis_v2", text: "Analyzing Q2 revenue patterns — identifying 3 high-value segments." },
-  { type: "action", signature: "stripe_fetch_tool", text: "Fetching last 30 days of transaction data from Stripe API." },
-  { type: "observation", signature: "signal_detector", text: "Detected 14% MoM growth in SaaS subscriptions. Confidence: 0.91." },
-  { type: "reasoning", signature: "churn_predictor", text: "Correlating engagement drop with plan downgrades — 2 at-risk accounts." },
-  { type: "action", signature: "whatsapp_notify", text: "Composing proactive retention message for at-risk users." },
-  { type: "conclusion", signature: "revenue_optimizer", text: "Optimal upsell window: Tuesday 10–11 AM. Projected uplift +$1,240." },
-  { type: "reasoning", signature: "competitor_watch", text: "Pricing change detected at competitor. Reassessing positioning." },
-  { type: "action", signature: "calendar_tool", text: "Scheduling follow-up task for tomorrow at 09:00 local time." },
-  { type: "observation", signature: "traffic_analyzer", text: "Landing page CTR up 8.3% after last copy iteration. Keeping variant B." },
-  { type: "reasoning", signature: "cashflow_planner", text: "Projecting 60-day cash flow with current burn rate and pipeline." },
+  { type: "observation", signature: "whatsapp_listener", text: "Mensaje de WhatsApp detectado: 'Quiero pagar el plan Pro con Yape'." },
+  { type: "reasoning", signature: "intent_analyzer", text: "Intención de compra identificada. El usuario requiere método de pago manual (Yape)." },
+  { type: "action", signature: "workflow_generator", text: "Iniciando 'use workflow'. Generando Webhook durable y guardando en Neon DB." },
+  { type: "observation", signature: "state_suspension", text: "Ejecutando await waitForWebhook(id). Entrando en estado Fluid Compute (0% CPU)." },
+  { type: "conclusion", signature: "wait_for_human", text: "Workflow en pausa segura. Esperando código OTP de 6 dígitos por parte del cliente." },
+  { type: "reasoning", signature: "idempotency_check", text: "Preparando bloque 'use step' para la llamada a MercadoPago una vez recibido el OTP." },
+  { type: "action", signature: "whatsapp_notify", text: "Enviando enlace seguro por WhatsApp para que el usuario ingrese su código." },
+  { type: "observation", signature: "signal_detector", text: "Monitoreando el endpoint de verificación para reanudar el flujo." },
 ];
 
 const TYPE_CONFIG = {
